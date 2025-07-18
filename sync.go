@@ -196,6 +196,7 @@ func (session *Session) SyncWithOptions(opts SyncOptions, beans ...interface{}) 
 				}
 			} else if col.Comment != oriCol.Comment {
 				if engine.dialect.URI().DBType == schemas.POSTGRES ||
+					engine.dialect.URI().DBType == schemas.GBASE8S ||
 					engine.dialect.URI().DBType == schemas.MYSQL {
 					_, err = session.exec(engine.dialect.ModifyColumnSQL(tbNameWithSchema, col))
 				}
