@@ -871,9 +871,9 @@ func (db *gbase8s) GetColumns(queryer core.Queryer, ctx context.Context, tableNa
 		}
 
 		if nullable != nil && *nullable == "N" {
-			col.Nullable = true
-		} else {
 			col.Nullable = false
+		} else {
+			col.Nullable = true
 		}
 		if comment != nil {
 			col.Comment = *comment
