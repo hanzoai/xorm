@@ -577,7 +577,7 @@ func TestParseWithJSONB(t *testing.T) {
 	assert.EqualValues(t, "struct_with_jsonb", table.Name)
 	assert.EqualValues(t, 1, len(table.Columns()))
 	assert.EqualValues(t, "default1", table.Columns()[0].Name)
-	assert.True(t, table.Columns()[0].IsJSON)
+	assert.True(t, table.Columns()[0].IsJSONB)
 }
 
 func TestParseWithSQLType(t *testing.T) {
@@ -616,4 +616,54 @@ func TestParseWithSQLType(t *testing.T) {
 	assert.EqualValues(t, "BIGINT", table.Columns()[2].SQLType.Name)
 	assert.EqualValues(t, "DATETIME", table.Columns()[3].SQLType.Name)
 	assert.EqualValues(t, "UUID", table.Columns()[4].SQLType.Name)
+}
+
+func TestParseWithJSONLongText(t *testing.T) {
+	parser := NewParser(
+		"db",
+		dialects.QueryDialect("mysql"),
+		names.GonicMapper{
+			"JSON": true,
+		},
+		names.GonicMapper{
+			"JSON": true,
+		},
+		caches.NewManager(),
+	)
+
+	type StructWithJSONLongText struct {
+		Col1 string `db:"LongText json"`
+	}
+
+	table, err := parser.Parse(reflect.ValueOf(new(StructWithJSONLongText)))
+	assert.NoError(t, err)
+	assert.EqualValues(t, "struct_with_json_long_text", table.Name)
+	assert.EqualValues(t, 1, len(table.Columns()))
+	assert.EqualValues(t, "col1", table.Columns()[0].Name)
+	assert.EqualValues(t, "LONGTEXT", table.Columns()[0].SQLType.Name)
+	assert.EqualValues(t, true, table.Columns()[0].IsJSON)
+
+	type StructWithJSONLongText2 struct {
+		Col1 string `db:"json"`
+	}
+
+	table, err = parser.Parse(reflect.ValueOf(new(StructWithJSONLongText2)))
+	assert.NoError(t, err)
+	assert.EqualValues(t, "struct_with_json_long_text2", table.Name)
+	assert.EqualValues(t, 1, len(table.Columns()))
+	assert.EqualValues(t, "col1", table.Columns()[0].Name)
+	assert.EqualValues(t, "JSON", table.Columns()[0].SQLType.Name)
+	assert.EqualValues(t, true, table.Columns()[0].IsJSON)
+
+	type StructWithJSONLongText3 struct {
+		Col1 string `db:"jsonb"`
+	}
+
+	table, err = parser.Parse(reflect.ValueOf(new(StructWithJSONLongText3)))
+	assert.NoError(t, err)
+	assert.EqualValues(t, "struct_with_json_long_text3", table.Name)
+	assert.EqualValues(t, 1, len(table.Columns()))
+	assert.EqualValues(t, "col1", table.Columns()[0].Name)
+	assert.EqualValues(t, "JSONB", table.Columns()[0].SQLType.Name)
+	assert.EqualValues(t, true, table.Columns()[0].IsJSONB)
 }
