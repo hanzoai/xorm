@@ -752,20 +752,18 @@ func getKeysFromMap(m map[string]*schemas.Index) []string {
 	return ss
 }
 
-
 type SyncTestUser struct {
-	Id         int64       `xorm:"pk autoincr 'id' comment('primary key 1')"`
-	Name       string    `xorm:"'name' notnull comment('nickname')" json:"name"`
+	Id   int64  `xorm:"pk autoincr 'id' comment('primary key 1')"`
+	Name string `xorm:"'name' notnull comment('nickname')" json:"name"`
 }
 
 func (m *SyncTestUser) TableName() string {
 	return "sync_test_user"
 }
 
-
 type SyncTestUser2 struct {
-	Id         int64       `xorm:"pk autoincr 'id' comment('primary key 2')"`
-	Name       string    `xorm:"'name' notnull comment('nickname')" json:"name"`
+	Id   int64  `xorm:"pk autoincr 'id' comment('primary key 2')"`
+	Name string `xorm:"'name' notnull comment('nickname')" json:"name"`
 }
 
 func (m *SyncTestUser2) TableName() string {
@@ -789,5 +787,36 @@ func TestSync2_3(t *testing.T) {
 		assert.EqualValues(t, tables[0].GetColumn("id").Comment, tableInfo.GetColumn("id").Comment)
 
 	}
-	
+}
+
+func TestSyncJSON(t *testing.T) {
+	type SyncTestJSON struct {
+		Id    int64
+		Value string `xorm:"LONGTEXT JSON 'value' comment('json value')"`
+	}
+
+	assert.NoError(t, PrepareEngine())
+	assertSync(t, new(SyncTestJSON))
+
+	assert.NoError(t, testEngine.Sync(new(SyncTestJSON)))
+	tables, err := testEngine.DBMetas()
+	assert.NoError(t, err)
+
+	tableInfo, err := testEngine.TableInfo(new(SyncTestJSON))
+	assert.NoError(t, err)
+
+	assert.EqualValues(t, tables[0].GetColumn("id").IsAutoIncrement, tableInfo.GetColumn("id").IsAutoIncrement)
+	assert.EqualValues(t, tables[0].GetColumn("id").Name, tableInfo.GetColumn("id").Name)
+	if testEngine.Dialect().URI().DBType == schemas.MYSQL {
+		assert.EqualValues(t, tables[0].GetColumn("id").SQLType.Name, tableInfo.GetColumn("id").SQLType.Name)
+	}
+	assert.EqualValues(t, tables[0].GetColumn("id").Nullable, tableInfo.GetColumn("id").Nullable)
+
+	assert.EqualValues(t, tables[0].GetColumn("value").IsAutoIncrement, tableInfo.GetColumn("value").IsAutoIncrement)
+	assert.EqualValues(t, tables[0].GetColumn("value").Name, tableInfo.GetColumn("value").Name)
+	assert.EqualValues(t, tables[0].GetColumn("value").Nullable, tableInfo.GetColumn("value").Nullable)
+
+	if testEngine.Dialect().URI().DBType == schemas.MYSQL {
+		assert.EqualValues(t, tables[0].GetColumn("value").SQLType.Name, tableInfo.GetColumn("value").SQLType.Name)
+	}
 }
