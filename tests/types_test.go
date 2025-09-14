@@ -536,7 +536,7 @@ func TestUnsignedTinyInt(t *testing.T) {
 	has, err := testEngine.Get(&v)
 	assert.NoError(t, err)
 	assert.True(t, has)
-	assert.EqualValues(t, uint64(math.MaxUint32), v.Id)
+	assert.EqualValues(t, math.MaxUint8, v.Id)
 }
 
 type MyDecimal big.Int
@@ -700,7 +700,7 @@ func TestZDecimal(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	var m3 = ZMyMoney{
+	m3 := ZMyMoney{
 		Id: 1,
 	}
 	has, err = testEngine.Get(&m3)
