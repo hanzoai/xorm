@@ -45,6 +45,81 @@ func TestZero(t *testing.T) {
 	}
 }
 
+type PrimitivePtr struct {
+	Int       *int
+	Int8Ptr   *int8
+	Int16Ptr  *int16
+	Int32Ptr  *int32
+	Int64Ptr  *int64
+	UInt      *uint
+	UInt8Ptr  *uint8
+	UInt16Ptr *uint16
+	UInt32Ptr *uint32
+	UInt64Ptr *uint64
+	StringPtr *string
+}
+
+type NonZeroStruct struct {
+	PrimitivePtr *PrimitivePtr
+}
+
+func NewNonZeroStruct() NonZeroStruct {
+	i := 1
+	i8 := int8(1)
+	i16 := int16(1)
+	i32 := int32(1)
+	i64 := int64(1)
+	u := uint(1)
+	u8 := uint8(1)
+	u16 := uint16(1)
+	u32 := uint32(1)
+	u64 := uint64(1)
+	s := "s"
+	return NonZeroStruct{
+		PrimitivePtr: &PrimitivePtr{
+			Int:       &i,
+			Int8Ptr:   &i8,
+			Int16Ptr:  &i16,
+			Int32Ptr:  &i32,
+			Int64Ptr:  &i64,
+			UInt:      &u,
+			UInt8Ptr:  &u8,
+			UInt16Ptr: &u16,
+			UInt32Ptr: &u32,
+			UInt64Ptr: &u64,
+			StringPtr: &s,
+		},
+	}
+}
+
+func TestNoZero(t *testing.T) {
+	now := time.Now()
+	nonZeroStruct := NewNonZeroStruct()
+	var nonZeroValues = []interface{}{
+		int8(1),
+		int16(1),
+		int(1),
+		int32(1),
+		int64(1),
+		uint8(1),
+		uint16(1),
+		uint(1),
+		uint32(1),
+		uint64(1),
+		MyInt(1),
+		reflect.ValueOf(1),
+		now,
+		&now,
+		&nonZeroStruct,
+		nonZeroStruct,
+	}
+	for _, v := range nonZeroValues {
+		t.Run(fmt.Sprintf("%#v", v), func(t *testing.T) {
+			assert.False(t, IsZero(v))
+		})
+	}
+}
+
 func TestIsValueZero(t *testing.T) {
 	var zeroReflectValues = []reflect.Value{
 		reflect.ValueOf(int8(0)),
