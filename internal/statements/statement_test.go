@@ -5,6 +5,7 @@
 package statements
 
 import (
+	"database/sql/driver"
 	"os"
 	"reflect"
 	"strings"
@@ -206,4 +207,51 @@ func BenchmarkColumnsStringGeneration(b *testing.B) {
 			b.Errorf("Unexpected columns string:\nwant:\t%s\nhave:\t%s", testCase.expected, actual)
 		}
 	}
+}
+
+type ZeroDecimal struct{}
+
+func (ZeroDecimal) Value() (driver.Value, error) {
+	return "0", nil
+}
+
+type EmptyDecimal struct{}
+
+func (EmptyDecimal) Value() (driver.Value, error) {
+	return "", nil
+}
+
+func TestAsDbCondWhenFieldValueIsDriverValuer(t *testing.T) {
+	statement, err := createTestStatement()
+	assert.NoError(t, err)
+
+	zeroDecimal := ZeroDecimal{}
+	val, ok, err := statement.asDBCond(
+		reflect.ValueOf(zeroDecimal),
+		reflect.TypeOf(zeroDecimal),
+		&schemas.Column{
+			Name:      "zero_decimal",
+			TableName: "test",
+		},
+		false,
+		false,
+	)
+	assert.Nil(t, val)
+	assert.False(t, ok)
+	assert.NoError(t, err)
+
+	emptyDecimal := EmptyDecimal{}
+	val, ok, err = statement.asDBCond(
+		reflect.ValueOf(emptyDecimal),
+		reflect.TypeOf(emptyDecimal),
+		&schemas.Column{
+			Name:      "empty_decimal",
+			TableName: "test",
+		},
+		false,
+		false,
+	)
+	assert.Nil(t, val)
+	assert.False(t, ok)
+	assert.NoError(t, err)
 }
