@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"xorm.io/builder"
 	"xorm.io/xorm"
 	"xorm.io/xorm/contexts"
 	"xorm.io/xorm/convert"
@@ -1020,4 +1021,40 @@ func TestGetBytesVars(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, has)
 	assert.EqualValues(t, gbv.Id, myID)
+}
+
+func TestGetStructWithDecimal(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+	type ProductGet struct {
+		Uid   int             `xorm:"pk autoincr"`
+		Price decimal.Decimal `xorm:"decimal(35,30)"`
+	}
+	assert.NoError(t, testEngine.Sync(new(ProductGet)))
+
+	session := testEngine.NewSession()
+	defer session.Close()
+	var err error
+	if testEngine.Dialect().URI().DBType == schemas.MSSQL {
+		err = session.Begin()
+		assert.NoError(t, err)
+		_, err = session.Exec("SET IDENTITY_INSERT `product_get` ON")
+		assert.NoError(t, err)
+	}
+	cnt, err := session.Insert(&ProductGet{Uid: 2, Price: decimal.NewFromFloat(0.8)})
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, cnt)
+	cnt, err = session.Insert(&ProductGet{Uid: 3, Price: decimal.NewFromFloat(1.5)})
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, cnt)
+	if testEngine.Dialect().URI().DBType == schemas.MSSQL {
+		err = session.Commit()
+		assert.NoError(t, err)
+	}
+
+	// Expected SQL: SELECT `uid`, `price` FROM `product_get` WHERE price>? LIMIT 1
+	// Wrong SQL: SELECT `uid`, `price` FROM `product_get` WHERE price>? AND `price`=? LIMIT 1
+	product := new(ProductGet)
+	exist, err := testEngine.Where(builder.Gt{"price": decimal.NewFromInt(1)}).Get(product)
+	assert.NoError(t, err)
+	assert.True(t, exist)
 }

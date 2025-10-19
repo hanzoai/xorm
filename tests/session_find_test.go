@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"xorm.io/builder"
 	"xorm.io/xorm"
 	"xorm.io/xorm/internal/utils"
@@ -1305,4 +1306,40 @@ func TestFindInMaxID(t *testing.T) {
 	tableName := testEngine.TableName("test_find_in_max_id", true)
 	err := testEngine.In("id", builder.Select("max(id)").From(testEngine.Quote(tableName))).Find(&res)
 	assert.NoError(t, err)
+}
+
+func TestFindStructWithDecimal(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+	type ProductFind struct {
+		Uid   int             `xorm:"pk autoincr"`
+		Price decimal.Decimal `xorm:"decimal(35,30)"`
+	}
+	assert.NoError(t, testEngine.Sync(new(ProductFind)))
+
+	session := testEngine.NewSession()
+	defer session.Close()
+	var err error
+	if testEngine.Dialect().URI().DBType == schemas.MSSQL {
+		err = session.Begin()
+		assert.NoError(t, err)
+		_, err = session.Exec("SET IDENTITY_INSERT `product_find` ON")
+		assert.NoError(t, err)
+	}
+	cnt, err := session.Insert(&ProductFind{Uid: 2, Price: decimal.NewFromFloat(0.8)})
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, cnt)
+	cnt, err = session.Insert(&ProductFind{Uid: 3, Price: decimal.NewFromFloat(1.5)})
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, cnt)
+	if testEngine.Dialect().URI().DBType == schemas.MSSQL {
+		err = session.Commit()
+		assert.NoError(t, err)
+	}
+
+	// Expected SQL: SELECT `uid`, `price` FROM `product_find` WHERE price>?
+	// Wrong SQL: SELECT `uid`, `price` FROM `product_find` WHERE price>? AND `price`=?
+	products := make([]*ProductFind, 0)
+	err = testEngine.Where(builder.Gt{"price": decimal.NewFromInt(1)}).Find(&products)
+	assert.NoError(t, err)
+	assert.Equal(t, int(1), len(products))
 }

@@ -7,8 +7,10 @@ package tests
 import (
 	"testing"
 
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"xorm.io/builder"
+	"xorm.io/xorm/schemas"
 )
 
 func TestCount(t *testing.T) {
@@ -189,4 +191,39 @@ func TestCountWithLimit(t *testing.T) {
 	cnt, err := testEngine.Limit(100).Count(new(CountWithTableName))
 	assert.NoError(t, err)
 	assert.EqualValues(t, 2, cnt)
+}
+
+func TestCountStructWithDecimal(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+	type ProductCount struct {
+		Uid   int             `xorm:"pk autoincr"`
+		Price decimal.Decimal `xorm:"decimal(35,30)"`
+	}
+	assert.NoError(t, testEngine.Sync(new(ProductCount)))
+
+	session := testEngine.NewSession()
+	defer session.Close()
+	var err error
+	if testEngine.Dialect().URI().DBType == schemas.MSSQL {
+		err = session.Begin()
+		assert.NoError(t, err)
+		_, err = session.Exec("SET IDENTITY_INSERT `product_count` ON")
+		assert.NoError(t, err)
+	}
+	cnt, err := session.Insert(&ProductCount{Uid: 2, Price: decimal.NewFromFloat(0.8)})
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, cnt)
+	cnt, err = session.Insert(&ProductCount{Uid: 3, Price: decimal.NewFromFloat(1.5)})
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, cnt)
+	if testEngine.Dialect().URI().DBType == schemas.MSSQL {
+		err = session.Commit()
+		assert.NoError(t, err)
+	}
+
+	// Expected SQL: SELECT count(*) FROM `product_count` WHERE price>?
+	// Wrong SQL: SELECT count(*) FROM `product_count` WHERE price>? AND `price`=?
+	total, err := testEngine.Where(builder.Gt{"price": decimal.NewFromInt(1)}).Count(new(ProductCount))
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), total)
 }
