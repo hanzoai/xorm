@@ -37,38 +37,39 @@ func postgresSeqFilterConvertQuestionMark(sql, prefix string, start int) string 
 			buf.WriteString(fmt.Sprintf("%s%v", prefix, index))
 			index++
 		} else {
-			if isMaybeJsonbQuestion && c == '?' {
+			switch {
+			case isMaybeJsonbQuestion && c == '?':
 				isMaybeJsonbQuestion = false
-			} else if isMaybeLineComment {
+			case isMaybeLineComment:
 				if c == '-' {
 					isLineComment = true
 				}
 				isMaybeLineComment = false
-			} else if isMaybeComment {
+			case isMaybeComment:
 				if c == '*' {
 					isComment = true
 				}
 				isMaybeComment = false
-			} else if isMaybeCommentEnd {
+			case isMaybeCommentEnd:
 				if c == '/' {
 					isComment = false
 				}
 				isMaybeCommentEnd = false
-			} else if isLineComment {
+			case isLineComment:
 				if c == '\n' {
 					isLineComment = false
 				}
-			} else if isComment {
+			case isComment:
 				if c == '*' {
 					isMaybeCommentEnd = true
 				}
-			} else if !beginSingleQuote && c == '-' {
+			case !beginSingleQuote && c == '-':
 				isMaybeLineComment = true
-			} else if !beginSingleQuote && c == '/' {
+			case !beginSingleQuote && c == '/':
 				isMaybeComment = true
-			} else if !beginSingleQuote && c == ' ' && i >= 7 && strings.TrimSpace(sql[i-7:i]) == "::jsonb" {
+			case !beginSingleQuote && c == ' ' && i >= 7 && strings.TrimSpace(sql[i-7:i]) == "::jsonb":
 				isMaybeJsonbQuestion = true
-			} else if c == '\'' {
+			case c == '\'':
 				beginSingleQuote = !beginSingleQuote
 			}
 			buf.WriteRune(c)
@@ -103,34 +104,35 @@ func oracleSeqFilterConvertQuestionMark(sql, prefix string, start int) string {
 			buf.WriteString(strconv.Itoa(index))
 			index++
 		} else {
-			if isMaybeLineComment {
+			switch {
+			case isMaybeLineComment:
 				if c == '-' {
 					isLineComment = true
 				}
 				isMaybeLineComment = false
-			} else if isMaybeComment {
+			case isMaybeComment:
 				if c == '*' {
 					isComment = true
 				}
 				isMaybeComment = false
-			} else if isMaybeCommentEnd {
+			case isMaybeCommentEnd:
 				if c == '/' {
 					isComment = false
 				}
 				isMaybeCommentEnd = false
-			} else if isLineComment {
+			case isLineComment:
 				if c == '\n' {
 					isLineComment = false
 				}
-			} else if isComment {
+			case isComment:
 				if c == '*' {
 					isMaybeCommentEnd = true
 				}
-			} else if !beginSingleQuote && c == '-' {
+			case !beginSingleQuote && c == '-':
 				isMaybeLineComment = true
-			} else if !beginSingleQuote && c == '/' {
+			case !beginSingleQuote && c == '/':
 				isMaybeComment = true
-			} else if c == '\'' {
+			case c == '\'':
 				beginSingleQuote = !beginSingleQuote
 			}
 			buf.WriteRune(c)

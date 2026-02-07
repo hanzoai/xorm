@@ -241,8 +241,7 @@ func Assign(dest, src any, originalLocation, convertedLocation *time.Location) e
 			return nil
 		}
 	case *sql.NullBool:
-		switch d := dest.(type) {
-		case *bool:
+		if d, ok := dest.(*bool); ok {
 			if s.Valid {
 				*d = s.Bool
 			}
@@ -280,16 +279,14 @@ func Assign(dest, src any, originalLocation, convertedLocation *time.Location) e
 			return nil
 		}
 	case *NullUint64:
-		switch d := dest.(type) {
-		case *uint64:
+		if d, ok := dest.(*uint64); ok {
 			if s.Valid {
 				*d = s.Uint64
 			}
 			return nil
 		}
 	case *sql.RawBytes:
-		switch d := dest.(type) {
-		case Conversion:
+		if d, ok := dest.(Conversion); ok {
 			return d.FromDB(*s)
 		}
 	}

@@ -11,7 +11,7 @@ GOFILES := $(wildcard *.go)
 GOFILES += $(shell find $(GO_DIRS) -name "*.go" -type f)
 INTEGRATION_PACKAGES := xorm.io/xorm/tests
 PACKAGES ?= $(filter-out $(INTEGRATION_PACKAGES),$(shell $(GO) list ./...))
-GOLANGCI_LINT_PACKAGE ?= github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0
+GOLANGCI_LINT_PACKAGE ?= github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
 
 TEST_COCKROACH_HOST ?= cockroach:26257
 TEST_COCKROACH_SCHEMA ?=
@@ -111,9 +111,18 @@ help:
 	@echo " - test-tidb         run integration tests for tidb"
 	@echo " - vet               examines Go source code and reports suspicious constructs"
 
-.PHONY: lint
-lint:
-	$(GO) run $(GOLANGCI_LINT_PACKAGE) run
+GOLANGCI_LINT_VERSION ?= v1.55.2
+GOLANGCI_LINT ?= $(PWD)/bin/golangci-lint
+GOLANGCI_LINT_GOTOOLCHAIN ?= go1.20.14
+
+.PHONY: lint lint-install
+lint: lint-install
+	GOTOOLCHAIN=$(GOLANGCI_LINT_GOTOOLCHAIN) $(GOLANGCI_LINT) run
+
+lint-install:
+	test -x $(GOLANGCI_LINT) || \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+		sh -s -- -b $(PWD)/bin $(GOLANGCI_LINT_VERSION)
 
 .PHONY: test
 test: go-check

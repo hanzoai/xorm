@@ -249,11 +249,12 @@ func (parser *Parser) parseFieldWithTags(table *schemas.Table, fieldIndex int, f
 	}
 
 	if col.SQLType.Name == "" {
-		if col.IsJSONB { // check is jsonb first because it is also json
+		switch {
+		case col.IsJSONB: // check is jsonb first because it is also json
 			col.SQLType = schemas.SQLType{Name: schemas.Jsonb}
-		} else if col.IsJSON {
+		case col.IsJSON:
 			col.SQLType = schemas.SQLType{Name: schemas.Json}
-		} else {
+		default:
 			var err error
 			col.SQLType, err = parser.getSQLTypeByType(field.Type)
 			if err != nil {

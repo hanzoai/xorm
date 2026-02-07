@@ -51,17 +51,20 @@ func (session *Session) cacheDelete(table *schemas.Table, tableName, sqlStr stri
 				var id int64
 				var pk schemas.PK = make([]any, 0)
 				for _, col := range pkColumns {
-					if v, ok := data[col.Name]; !ok {
+					v, ok := data[col.Name]
+					if !ok {
 						return errors.New("no id")
-					} else if col.SQLType.IsText() {
+					}
+					switch {
+					case col.SQLType.IsText():
 						pk = append(pk, v)
-					} else if col.SQLType.IsNumeric() {
+					case col.SQLType.IsNumeric():
 						id, err = strconv.ParseInt(v, 10, 64)
 						if err != nil {
 							return err
 						}
 						pk = append(pk, id)
-					} else {
+					default:
 						return errors.New("not supported primary key type")
 					}
 				}

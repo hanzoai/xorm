@@ -303,19 +303,20 @@ func Type2SQLType(t reflect.Type) (st SQLType) {
 	case reflect.String:
 		st = SQLType{Varchar, 255, 0}
 	case reflect.Struct:
-		if t.ConvertibleTo(TimeType) {
+		switch {
+		case t.ConvertibleTo(TimeType):
 			st = SQLType{DateTime, 0, 0}
-		} else if t.ConvertibleTo(NullFloat64Type) {
+		case t.ConvertibleTo(NullFloat64Type):
 			st = SQLType{Double, 0, 0}
-		} else if t.ConvertibleTo(NullStringType) {
+		case t.ConvertibleTo(NullStringType):
 			st = SQLType{Varchar, 255, 0}
-		} else if t.ConvertibleTo(NullInt32Type) {
+		case t.ConvertibleTo(NullInt32Type):
 			st = SQLType{Integer, 0, 0}
-		} else if t.ConvertibleTo(NullInt64Type) {
+		case t.ConvertibleTo(NullInt64Type):
 			st = SQLType{BigInt, 0, 0}
-		} else if t.ConvertibleTo(NullBoolType) {
+		case t.ConvertibleTo(NullBoolType):
 			st = SQLType{Boolean, 0, 0}
-		} else {
+		default:
 			// TODO need to handle association struct
 			st = SQLType{Text, 0, 0}
 		}

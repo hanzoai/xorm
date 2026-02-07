@@ -152,7 +152,8 @@ func (session *Session) insertMultipleStruct(rowsSlicePtr any) (int64, error) {
 					fieldValue = reflect.ValueOf(nilValue)
 				}
 			}
-			if (col.IsCreated || col.IsUpdated) && session.statement.UseAutoTime {
+			switch {
+			case (col.IsCreated || col.IsUpdated) && session.statement.UseAutoTime:
 				val, t, err := session.engine.nowTime(col)
 				if err != nil {
 					return 0, err
@@ -164,14 +165,14 @@ func (session *Session) insertMultipleStruct(rowsSlicePtr any) (int64, error) {
 					col := table.GetColumn(colName)
 					setColumnTime(bean, col, t)
 				})
-			} else if col.IsVersion && session.statement.CheckVersion {
+			case col.IsVersion && session.statement.CheckVersion:
 				args = append(args, 1)
 				colName := col.Name
 				session.afterClosures = append(session.afterClosures, func(bean any) {
 					col := table.GetColumn(colName)
 					setColumnInt(bean, col, 1)
 				})
-			} else {
+			default:
 				arg, err := session.statement.Value2Interface(col, fieldValue)
 				if err != nil {
 					return 0, err
@@ -465,11 +466,12 @@ func (session *Session) genInsertColumns(bean any) ([]string, []any, error) {
 		if len(session.statement.ColumnMap) > 0 && !session.statement.ColumnMap.Contain(col.Name) {
 			continue
 		}
-		if session.statement.IncrColumns.IsColExist(col.Name) {
+		switch {
+		case session.statement.IncrColumns.IsColExist(col.Name):
 			continue
-		} else if session.statement.DecrColumns.IsColExist(col.Name) {
+		case session.statement.DecrColumns.IsColExist(col.Name):
 			continue
-		} else if session.statement.ExprColumns.IsColExist(col.Name) {
+		case session.statement.ExprColumns.IsColExist(col.Name):
 			continue
 		}
 
@@ -502,7 +504,8 @@ func (session *Session) genInsertColumns(bean any) ([]string, []any, error) {
 			}
 		}
 
-		if (col.IsCreated || col.IsUpdated) && session.statement.UseAutoTime /*&& isZero(fieldValue.Interface())*/ {
+		switch {
+		case (col.IsCreated || col.IsUpdated) && session.statement.UseAutoTime: /*&& isZero(fieldValue.Interface())*/
 			// if time is non-empty, then set to auto time
 			val, t, err := session.engine.nowTime(col)
 			if err != nil {
@@ -515,9 +518,9 @@ func (session *Session) genInsertColumns(bean any) ([]string, []any, error) {
 				col := table.GetColumn(colName)
 				setColumnTime(bean, col, t)
 			})
-		} else if col.IsVersion && session.statement.CheckVersion {
+		case col.IsVersion && session.statement.CheckVersion:
 			args = append(args, 1)
-		} else {
+		default:
 			arg, err := session.statement.Value2Interface(col, fieldValue)
 			if err != nil {
 				return colNames, args, err

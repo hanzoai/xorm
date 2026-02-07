@@ -39,3 +39,4 @@ tests/*.sql
 tests/test_sqlite*
 cover.out
 cover.html
+bin/

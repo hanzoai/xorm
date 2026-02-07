@@ -469,7 +469,8 @@ func (db *mysql) GetColumns(queryer core.Queryer, ctx context.Context, tableName
 		var len1, len2 int64
 		if len(cts) == 2 {
 			idx := strings.Index(cts[1], ")")
-			if colType == schemas.Enum && cts[1][0] == '\'' { // enum
+			switch {
+			case colType == schemas.Enum && cts[1][0] == '\'': // enum
 				options := strings.Split(cts[1][0:idx], ",")
 				col.EnumOptions = make(map[string]int)
 				for k, v := range options {
@@ -477,7 +478,7 @@ func (db *mysql) GetColumns(queryer core.Queryer, ctx context.Context, tableName
 					v = strings.Trim(v, "'")
 					col.EnumOptions[v] = k
 				}
-			} else if colType == schemas.Set && cts[1][0] == '\'' {
+			case colType == schemas.Set && cts[1][0] == '\'':
 				options := strings.Split(cts[1][0:idx], ",")
 				col.SetOptions = make(map[string]int)
 				for k, v := range options {
@@ -485,7 +486,7 @@ func (db *mysql) GetColumns(queryer core.Queryer, ctx context.Context, tableName
 					v = strings.Trim(v, "'")
 					col.SetOptions[v] = k
 				}
-			} else {
+			default:
 				lens := strings.Split(cts[1][0:idx], ",")
 				len1, err = strconv.ParseInt(strings.TrimSpace(lens[0]), 10, 64)
 				if err != nil {

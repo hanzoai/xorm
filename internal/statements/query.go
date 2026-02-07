@@ -143,11 +143,12 @@ func (statement *Statement) GenCountSQL(beans ...any) (string, []any, error) {
 
 	selectSQL := statement.SelectStr
 	if len(selectSQL) == 0 {
-		if statement.IsDistinct {
+		switch {
+		case statement.IsDistinct:
 			selectSQL = fmt.Sprintf("count(DISTINCT %s)", statement.ColumnStr())
-		} else if statement.ColumnStr() != "" {
+		case statement.ColumnStr() != "":
 			selectSQL = fmt.Sprintf("count(%s)", statement.ColumnStr())
-		} else {
+		default:
 			selectSQL = "count(*)"
 		}
 	}
@@ -317,7 +318,8 @@ func (statement *Statement) GenExistSQL(bean ...any) (string, []any, error) {
 	tableName = statement.quote(tableName)
 
 	buf := builder.NewWriter()
-	if statement.dialect.URI().DBType == schemas.MSSQL {
+	switch statement.dialect.URI().DBType {
+	case schemas.MSSQL:
 		if _, err := fmt.Fprintf(buf, "SELECT TOP 1 * FROM %s", tableName); err != nil {
 			return "", nil, err
 		}
@@ -327,7 +329,7 @@ func (statement *Statement) GenExistSQL(bean ...any) (string, []any, error) {
 		if err := statement.writeWhere(buf); err != nil {
 			return "", nil, err
 		}
-	} else if statement.dialect.URI().DBType == schemas.ORACLE {
+	case schemas.ORACLE:
 		if _, err := fmt.Fprintf(buf, "SELECT * FROM %s", tableName); err != nil {
 			return "", nil, err
 		}
@@ -348,7 +350,7 @@ func (statement *Statement) GenExistSQL(bean ...any) (string, []any, error) {
 		if _, err := fmt.Fprintf(buf, "ROWNUM=1"); err != nil {
 			return "", nil, err
 		}
-	} else {
+	default:
 		if _, err := fmt.Fprintf(buf, "SELECT 1 FROM %s", tableName); err != nil {
 			return "", nil, err
 		}

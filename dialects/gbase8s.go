@@ -622,11 +622,12 @@ func (db *gbase8s) SQLType(c *schemas.Column) string {
 	}
 	hasLen1 := c.Length > 0
 	hasLen2 := c.Length2 > 0
-	if res == "BIGINT" || res == "INT" || res == "SMALLINT" {
+	switch {
+	case res == "BIGINT" || res == "INT" || res == "SMALLINT":
 		// GBase 8s INT doesn't need length specification
-	} else if hasLen2 {
+	case hasLen2:
 		res += "(" + strconv.FormatInt(c.Length, 10) + "," + strconv.FormatInt(c.Length2, 10) + ")"
-	} else if hasLen1 {
+	case hasLen1:
 		res += "(" + strconv.FormatInt(c.Length, 10) + ")"
 	}
 	return res

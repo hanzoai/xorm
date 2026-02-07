@@ -56,7 +56,7 @@ func AsFloat64(src any) (float64, error) {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return float64(rv.Uint()), nil
 	case reflect.Float64, reflect.Float32:
-		return float64(rv.Float()), nil
+		return rv.Float(), nil
 	case reflect.String:
 		return strconv.ParseFloat(rv.String(), 64)
 	}

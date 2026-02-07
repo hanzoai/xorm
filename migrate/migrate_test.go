@@ -1,7 +1,6 @@
 package migrate
 
 import (
-	"log"
 	"os"
 	"testing"
 
@@ -51,12 +50,12 @@ func TestMigration(t *testing.T) {
 
 	db, err := xorm.NewEngine("sqlite3", dbName)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	defer db.Close()
 
 	if err = db.Ping(); err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	m := New(db, DefaultOptions, migrations)
@@ -91,11 +90,11 @@ func TestInitSchema(t *testing.T) {
 
 	db, err := xorm.NewEngine("sqlite3", dbName)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	defer db.Close()
 	if err = db.Ping(); err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	m := New(db, DefaultOptions, migrations)
