@@ -44,7 +44,7 @@ func (session *Session) Commit() error {
 		}
 
 		// handle processors after tx committed
-		closureCallFunc := func(closuresPtr *[]func(interface{}), bean interface{}) {
+		closureCallFunc := func(closuresPtr *[]func(any), bean any) {
 			if closuresPtr != nil {
 				for _, closure := range *closuresPtr {
 					closure(bean)
@@ -55,27 +55,27 @@ func (session *Session) Commit() error {
 		for bean, closuresPtr := range session.afterInsertBeans {
 			closureCallFunc(closuresPtr, bean)
 
-			if processor, ok := interface{}(bean).(AfterInsertProcessor); ok {
+			if processor, ok := bean.(AfterInsertProcessor); ok {
 				processor.AfterInsert()
 			}
 		}
 		for bean, closuresPtr := range session.afterUpdateBeans {
 			closureCallFunc(closuresPtr, bean)
 
-			if processor, ok := interface{}(bean).(AfterUpdateProcessor); ok {
+			if processor, ok := bean.(AfterUpdateProcessor); ok {
 				processor.AfterUpdate()
 			}
 		}
 		for bean, closuresPtr := range session.afterDeleteBeans {
 			closureCallFunc(closuresPtr, bean)
 
-			if processor, ok := interface{}(bean).(AfterDeleteProcessor); ok {
+			if processor, ok := bean.(AfterDeleteProcessor); ok {
 				processor.AfterDelete()
 			}
 		}
-		cleanUpFunc := func(slices *map[interface{}]*[]func(interface{})) {
+		cleanUpFunc := func(slices *map[any]*[]func(any)) {
 			if len(*slices) > 0 {
-				*slices = make(map[interface{}]*[]func(interface{}))
+				*slices = make(map[any]*[]func(any))
 			}
 		}
 		cleanUpFunc(&session.afterInsertBeans)

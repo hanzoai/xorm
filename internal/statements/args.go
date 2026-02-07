@@ -23,7 +23,7 @@ func (n DateTimeString) Value() (driver.Value, error) {
 }
 
 // WriteArg writes an arg
-func (statement *Statement) WriteArg(w *builder.BytesWriter, arg interface{}) error {
+func (statement *Statement) WriteArg(w *builder.BytesWriter, arg any) error {
 	switch argv := arg.(type) {
 	case *builder.Builder:
 		if _, err := w.WriteString("("); err != nil {
@@ -64,7 +64,7 @@ func (statement *Statement) WriteArg(w *builder.BytesWriter, arg interface{}) er
 }
 
 // WriteArgs writes args
-func (statement *Statement) WriteArgs(w *builder.BytesWriter, args []interface{}) error {
+func (statement *Statement) WriteArgs(w *builder.BytesWriter, args []any) error {
 	for i, arg := range args {
 		if err := statement.WriteArg(w, arg); err != nil {
 			return err

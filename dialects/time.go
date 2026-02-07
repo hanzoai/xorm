@@ -7,13 +7,13 @@ package dialects
 import (
 	"strings"
 	"time"
-	"xorm.io/xorm/internal/utils"
 
+	"xorm.io/xorm/internal/utils"
 	"xorm.io/xorm/schemas"
 )
 
 // FormatColumnTime format column time
-func FormatColumnTime(dialect Dialect, dbLocation *time.Location, col *schemas.Column, t time.Time) (interface{}, error) {
+func FormatColumnTime(dialect Dialect, dbLocation *time.Location, col *schemas.Column, t time.Time) (any, error) {
 	if utils.IsTimeZero(t) {
 		if col.Nullable {
 			return nil, nil
@@ -55,9 +55,8 @@ func FormatColumnTime(dialect Dialect, dbLocation *time.Location, col *schemas.C
 	case schemas.TimeStampz:
 		if dialect.URI().DBType == schemas.MSSQL {
 			return t.Format("2006-01-02T15:04:05.9999999Z07:00"), nil
-		} else {
-			return t.Format(time.RFC3339Nano), nil
 		}
+		return t.Format(time.RFC3339Nano), nil
 	case schemas.BigInt, schemas.Int:
 		return t.Unix(), nil
 	default:

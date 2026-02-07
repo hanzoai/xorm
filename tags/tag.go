@@ -169,7 +169,7 @@ func PKTagHandler(ctx *Context) error {
 
 // NULLTagHandler describes null tag handler
 func NULLTagHandler(ctx *Context) error {
-	ctx.col.Nullable = strings.ToUpper(ctx.preTag) != "NOT"
+	ctx.col.Nullable = !strings.EqualFold(ctx.preTag, "NOT")
 	return nil
 }
 
@@ -378,10 +378,9 @@ func ExtendsTagHandler(ctx *Context) error {
 			col.FieldName = fmt.Sprintf("%v.%v", ctx.col.FieldName, col.FieldName)
 			col.FieldIndex = append(ctx.col.FieldIndex, col.FieldIndex...)
 
-			tagPrefix := ctx.col.FieldName
 			if len(ctx.params) > 0 {
 				col.Nullable = isPtr
-				tagPrefix = strings.Trim(ctx.params[0], "'")
+				tagPrefix := strings.Trim(ctx.params[0], "'")
 				if col.IsPrimaryKey {
 					col.Name = ctx.col.FieldName
 					col.IsPrimaryKey = false

@@ -124,7 +124,6 @@ type ConvConfig struct {
 
 func (s *ConvConfig) FromDB(data []byte) error {
 	if data == nil {
-		s = nil
 		return nil
 	}
 	return json.DefaultJSONHandler.Unmarshal(data, s)
@@ -313,7 +312,7 @@ func TestCustomType1(t *testing.T) {
 		return
 	}
 
-	fmt.Println(i)
+	t.Log(i)
 	i.NameArray = []string{}
 	i.MSS = map[string]string{}
 	i.F = 0
@@ -409,14 +408,14 @@ func TestCustomType2(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 
-	fmt.Println(user)
+	t.Log(user)
 
 	users := make([]UserCus, 0)
 	err = testEngine.Where("`"+testEngine.GetColumnMapper().Obj2Table("Status")+"` = ?", "Registered").Find(&users)
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, len(users))
 
-	fmt.Println(users)
+	t.Log(users)
 }
 
 func TestUnsignedUint64(t *testing.T) {
@@ -523,7 +522,7 @@ func TestUnsignedTinyInt(t *testing.T) {
 	case schemas.MSSQL:
 		assert.EqualValues(t, "INT", tables[0].Columns()[0].SQLType.Name)
 	default:
-		assert.False(t, true, fmt.Sprintf("Unsigned is not implemented, returned %s", tables[0].Columns()[0].SQLType.Name))
+		assert.False(t, true, "Unsigned is not implemented, returned "+tables[0].Columns()[0].SQLType.Name)
 	}
 
 	cnt, err := testEngine.Insert(&MyUnsignedTinyIntStruct{
@@ -544,15 +543,14 @@ type MyDecimal big.Int
 func (d *MyDecimal) FromDB(data []byte) error {
 	i, _ := strconv.ParseInt(string(data), 10, 64)
 	if d == nil {
-		d = (*MyDecimal)(big.NewInt(i))
-	} else {
-		(*big.Int)(d).SetInt64(i)
+		return nil
 	}
+	(*big.Int)(d).SetInt64(i)
 	return nil
 }
 
 func (d *MyDecimal) ToDB() ([]byte, error) {
-	return []byte(fmt.Sprintf("%d", (*big.Int)(d).Int64())), nil
+	return fmt.Appendf(nil, "%d", (*big.Int)(d).Int64()), nil
 }
 
 func (d *MyDecimal) AsBigInt() *big.Int {
@@ -636,7 +634,7 @@ func (d ZDecimal) ToDB() ([]byte, error) {
 	if d.value == nil {
 		return []byte("0"), nil
 	}
-	return []byte(fmt.Sprintf("%d", (d.value).Int64())), nil
+	return fmt.Appendf(nil, "%d", (d.value).Int64()), nil
 }
 
 func (d ZDecimal) IsZero() bool {

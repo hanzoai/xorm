@@ -39,20 +39,20 @@ type CacheStore interface {
 	// key is primary key or composite primary key
 	// value is struct's pointer
 	// key format : <tablename>-p-<pk1>-<pk2>...
-	Put(key string, value interface{}) error
-	Get(key string) (interface{}, error)
+	Put(key string, value any) error
+	Get(key string) (any, error)
 	Del(key string) error
 }
 
 // Cacher is an interface to provide cache
 // id format : u-<pk1>-<pk2>...
 type Cacher interface {
-	GetIds(tableName, sql string) interface{}
-	GetBean(tableName string, id string) interface{}
-	PutIds(tableName, sql string, ids interface{})
-	PutBean(tableName string, id string, obj interface{})
+	GetIds(tableName, sql string) any
+	GetBean(tableName, id string) any
+	PutIds(tableName, sql string, ids any)
+	PutBean(tableName, id string, obj any)
 	DelIds(tableName, sql string)
-	DelBean(tableName string, id string)
+	DelBean(tableName, id string)
 	ClearIds(tableName string)
 	ClearBeans(tableName string)
 }
@@ -75,7 +75,7 @@ func decodeIds(s string) ([]schemas.PK, error) {
 }
 
 // GetCacheSql returns cacher PKs via SQL
-func GetCacheSql(m Cacher, tableName, sql string, args interface{}) ([]schemas.PK, error) {
+func GetCacheSql(m Cacher, tableName, sql string, args any) ([]schemas.PK, error) {
 	bytes := m.GetIds(tableName, GenSqlKey(sql, args))
 	if bytes == nil {
 		return nil, errors.New("Not Exist")
@@ -84,7 +84,7 @@ func GetCacheSql(m Cacher, tableName, sql string, args interface{}) ([]schemas.P
 }
 
 // PutCacheSql puts cacher SQL and PKs
-func PutCacheSql(m Cacher, ids []schemas.PK, tableName, sql string, args interface{}) error {
+func PutCacheSql(m Cacher, ids []schemas.PK, tableName, sql string, args any) error {
 	bytes, err := encodeIds(ids)
 	if err != nil {
 		return err
@@ -94,6 +94,6 @@ func PutCacheSql(m Cacher, ids []schemas.PK, tableName, sql string, args interfa
 }
 
 // GenSqlKey generates cache key
-func GenSqlKey(sql string, args interface{}) string {
+func GenSqlKey(sql string, args any) string {
 	return fmt.Sprintf("%v-%v", sql, args)
 }

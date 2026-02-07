@@ -36,9 +36,9 @@ var (
 
 type join struct {
 	op        string
-	table     interface{}
-	condition interface{}
-	args      []interface{}
+	table     any
+	condition any
+	args      []any
 }
 
 type indexHint struct {
@@ -65,7 +65,7 @@ type Statement struct {
 	AltTableName    string
 	tableName       string
 	RawSQL          string
-	RawParams       []interface{}
+	RawParams       []any
 	UseCascade      bool
 	UseAutoJoin     bool
 	StoreEngine     string
@@ -144,7 +144,7 @@ func (statement *Statement) Reset() {
 	statement.tableName = ""
 	statement.idParam = nil
 	statement.RawSQL = ""
-	statement.RawParams = make([]interface{}, 0)
+	statement.RawParams = make([]any, 0)
 	statement.UseCache = true
 	statement.UseAutoTime = true
 	statement.NoAutoCondition = false
@@ -168,7 +168,7 @@ func (statement *Statement) Reset() {
 }
 
 // SQL adds raw sql statement
-func (statement *Statement) SQL(query interface{}, args ...interface{}) *Statement {
+func (statement *Statement) SQL(query any, args ...any) *Statement {
 	switch t := query.(type) {
 	case *builder.Builder:
 		var err error
@@ -201,12 +201,12 @@ func (statement *Statement) SetRefValue(v reflect.Value) error {
 	return nil
 }
 
-func rValue(bean interface{}) reflect.Value {
+func rValue(bean any) reflect.Value {
 	return reflect.Indirect(reflect.ValueOf(bean))
 }
 
 // SetRefBean set ref bean
-func (statement *Statement) SetRefBean(bean interface{}) error {
+func (statement *Statement) SetRefBean(bean any) error {
 	var err error
 	statement.RefTable, err = statement.tagParser.ParseWithCache(rValue(bean))
 	if err != nil {
@@ -221,7 +221,7 @@ func (statement *Statement) NeedTableName() bool {
 }
 
 // Incr Generate  "Update ... Set column = column + arg" statement
-func (statement *Statement) Incr(column string, arg ...interface{}) *Statement {
+func (statement *Statement) Incr(column string, arg ...any) *Statement {
 	if len(arg) > 0 {
 		statement.IncrColumns.Add(column, arg[0])
 	} else {
@@ -231,7 +231,7 @@ func (statement *Statement) Incr(column string, arg ...interface{}) *Statement {
 }
 
 // Decr Generate  "Update ... Set column = column - arg" statement
-func (statement *Statement) Decr(column string, arg ...interface{}) *Statement {
+func (statement *Statement) Decr(column string, arg ...any) *Statement {
 	if len(arg) > 0 {
 		statement.DecrColumns.Add(column, arg[0])
 	} else {
@@ -241,7 +241,7 @@ func (statement *Statement) Decr(column string, arg ...interface{}) *Statement {
 }
 
 // SetExpr Generate  "Update ... Set column = {expression}" statement
-func (statement *Statement) SetExpr(column string, expression interface{}) *Statement {
+func (statement *Statement) SetExpr(column string, expression any) *Statement {
 	if e, ok := expression.(string); ok {
 		statement.ExprColumns.Add(column, statement.dialect.Quoter().Replace(e))
 	} else {
@@ -280,7 +280,7 @@ func (statement *Statement) Limit(limit int, start ...int) *Statement {
 }
 
 // SetTable tempororily set table name, the parameter could be a string or a pointer of struct
-func (statement *Statement) SetTable(tableNameOrBean interface{}) error {
+func (statement *Statement) SetTable(tableNameOrBean any) error {
 	v := rValue(tableNameOrBean)
 	t := v.Type()
 	if t.Kind() == reflect.Struct {
@@ -374,7 +374,7 @@ func (statement *Statement) GenDelIndexSQL() []string {
 	return sqls
 }
 
-func (statement *Statement) asDBCond(fieldValue reflect.Value, fieldType reflect.Type, col *schemas.Column, allUseBool, requiredField bool) (interface{}, bool, error) {
+func (statement *Statement) asDBCond(fieldValue reflect.Value, fieldType reflect.Type, col *schemas.Column, allUseBool, requiredField bool) (any, bool, error) {
 	switch fieldType.Kind() {
 	case reflect.Ptr:
 		if fieldValue.IsNil() {
@@ -443,40 +443,39 @@ func (statement *Statement) asDBCond(fieldValue reflect.Value, fieldType reflect
 				}
 			}
 			return val, true, nil
-		} else {
-			if col.IsJSON {
-				if col.SQLType.IsText() {
-					bytes, err := json.DefaultJSONHandler.Marshal(fieldValue.Interface())
-					if err != nil {
-						return nil, false, err
-					}
-					return string(bytes), true, nil
-				} else if col.SQLType.IsBlob() {
-					var bytes []byte
-					var err error
-					bytes, err = json.DefaultJSONHandler.Marshal(fieldValue.Interface())
-					if err != nil {
-						return nil, false, err
-					}
-					return bytes, true, nil
-				}
-			} else {
-				table, err := statement.tagParser.ParseWithCache(fieldValue)
+		}
+		if col.IsJSON {
+			if col.SQLType.IsText() {
+				bytes, err := json.DefaultJSONHandler.Marshal(fieldValue.Interface())
 				if err != nil {
-					return fieldValue.Interface(), true, nil
+					return nil, false, err
 				}
-
-				if len(table.PrimaryKeys) == 1 {
-					pkField := reflect.Indirect(fieldValue).FieldByName(table.PKColumns()[0].FieldName)
-					// fix non-int pk issues
-					// if pkField.Int() != 0 {
-					if pkField.IsValid() && !utils.IsZero(pkField.Interface()) {
-						return pkField.Interface(), true, nil
-					}
-					return nil, false, nil
+				return string(bytes), true, nil
+			} else if col.SQLType.IsBlob() {
+				var bytes []byte
+				var err error
+				bytes, err = json.DefaultJSONHandler.Marshal(fieldValue.Interface())
+				if err != nil {
+					return nil, false, err
 				}
-				return nil, false, fmt.Errorf("not supported %v as %v", fieldValue.Interface(), table.PrimaryKeys)
+				return bytes, true, nil
 			}
+		} else {
+			table, err := statement.tagParser.ParseWithCache(fieldValue)
+			if err != nil {
+				return fieldValue.Interface(), true, nil
+			}
+
+			if len(table.PrimaryKeys) == 1 {
+				pkField := reflect.Indirect(fieldValue).FieldByName(table.PKColumns()[0].FieldName)
+				// fix non-int pk issues
+				// if pkField.Int() != 0 {
+				if pkField.IsValid() && !utils.IsZero(pkField.Interface()) {
+					return pkField.Interface(), true, nil
+				}
+				return nil, false, nil
+			}
+			return nil, false, fmt.Errorf("not supported %v as %v", fieldValue.Interface(), table.PrimaryKeys)
 		}
 	case reflect.Array:
 		return nil, false, nil
@@ -515,9 +514,8 @@ func (statement *Statement) asDBCond(fieldValue reflect.Value, fieldType reflect
 	return fieldValue.Interface(), true, nil
 }
 
-func (statement *Statement) buildConds2(table *schemas.Table, bean interface{},
-	includeVersion bool, includeUpdated bool, includeNil bool,
-	includeAutoIncr bool, allUseBool bool, useAllCols bool, unscoped bool,
+func (statement *Statement) buildConds2(table *schemas.Table, bean any,
+	includeVersion, includeUpdated, includeNil, includeAutoIncr, allUseBool, useAllCols, unscoped bool,
 	mustColumnMap map[string]bool, tableName, aliasName string, addedTableName bool,
 ) (builder.Cond, error) {
 	var conds []builder.Cond
@@ -588,14 +586,14 @@ func (statement *Statement) buildConds2(table *schemas.Table, bean interface{},
 					conds = append(conds, builder.Eq{colName: nil})
 				}
 				continue
-			} else if !fieldValue.IsValid() {
-				continue
-			} else {
-				// dereference ptr type to instance type
-				fieldValue = fieldValue.Elem()
-				fieldType = reflect.TypeOf(fieldValue.Interface())
-				requiredField = true
 			}
+			if !fieldValue.IsValid() {
+				continue
+			}
+			// dereference ptr type to instance type
+			fieldValue = fieldValue.Elem()
+			fieldType = reflect.TypeOf(fieldValue.Interface())
+			requiredField = true
 		}
 
 		val, ok, err := statement.asDBCond(fieldValue, fieldType, col, allUseBool, requiredField)
@@ -613,13 +611,13 @@ func (statement *Statement) buildConds2(table *schemas.Table, bean interface{},
 }
 
 // BuildConds builds condition
-func (statement *Statement) BuildConds(table *schemas.Table, bean interface{}, includeVersion bool, includeUpdated bool, includeNil bool, includeAutoIncr bool, addedTableName bool) (builder.Cond, error) {
+func (statement *Statement) BuildConds(table *schemas.Table, bean any, includeVersion, includeUpdated, includeNil, includeAutoIncr, addedTableName bool) (builder.Cond, error) {
 	return statement.buildConds2(table, bean, includeVersion, includeUpdated, includeNil, includeAutoIncr, statement.allUseBool, statement.useAllCols,
 		statement.unscoped, statement.MustColumnMap, statement.TableName(), statement.TableAlias, addedTableName)
 }
 
 // MergeConds merge conditions from bean and id
-func (statement *Statement) MergeConds(bean interface{}) error {
+func (statement *Statement) MergeConds(bean any) error {
 	if !statement.NoAutoCondition && statement.RefTable != nil {
 		addedTableName := len(statement.joins) > 0
 		autoCond, err := statement.BuildConds(statement.RefTable, bean, true, true, false, true, addedTableName)
@@ -638,7 +636,7 @@ func (statement *Statement) quoteColumnStr(columnStr string) string {
 }
 
 // ConvertSQLOrArgs converts sql or args
-func (statement *Statement) ConvertSQLOrArgs(sqlOrArgs ...interface{}) (string, []interface{}, error) {
+func (statement *Statement) ConvertSQLOrArgs(sqlOrArgs ...any) (string, []any, error) {
 	sql, args, err := statement.convertSQLOrArgs(sqlOrArgs...)
 	if err != nil {
 		return "", nil, err
@@ -646,11 +644,11 @@ func (statement *Statement) ConvertSQLOrArgs(sqlOrArgs ...interface{}) (string, 
 	return statement.ReplaceQuote(sql), args, nil
 }
 
-func (statement *Statement) convertSQLOrArgs(sqlOrArgs ...interface{}) (string, []interface{}, error) {
-	switch sqlOrArgs[0].(type) {
+func (statement *Statement) convertSQLOrArgs(sqlOrArgs ...any) (string, []any, error) {
+	switch arg := sqlOrArgs[0].(type) {
 	case string:
 		if len(sqlOrArgs) > 1 {
-			newArgs := make([]interface{}, 0, len(sqlOrArgs)-1)
+			newArgs := make([]any, 0, len(sqlOrArgs)-1)
 			for _, arg := range sqlOrArgs[1:] {
 				if v, ok := arg.(time.Time); ok {
 					newArgs = append(newArgs, v.In(statement.defaultTimeZone).Format("2006-01-02 15:04:05"))
@@ -677,14 +675,13 @@ func (statement *Statement) convertSQLOrArgs(sqlOrArgs ...interface{}) (string, 
 					newArgs = append(newArgs, arg)
 				}
 			}
-			return sqlOrArgs[0].(string), newArgs, nil
+			return arg, newArgs, nil
 		}
-		return sqlOrArgs[0].(string), sqlOrArgs[1:], nil
+		return arg, sqlOrArgs[1:], nil
 	case *builder.Builder:
-		return sqlOrArgs[0].(*builder.Builder).ToSQL()
+		return arg.ToSQL()
 	case builder.Builder:
-		bd := sqlOrArgs[0].(builder.Builder)
-		return bd.ToSQL()
+		return arg.ToSQL()
 	}
 
 	return "", nil, ErrUnSupportedType
@@ -715,7 +712,7 @@ func (statement *Statement) CondDeleted(col *schemas.Column) builder.Cond {
 		}
 		colName = statement.quote(prefix) + "." + statement.quote(col.Name)
 	}
-	cond := builder.NewCond()
+	var cond builder.Cond
 	if col.SQLType.IsNumeric() {
 		cond = builder.Eq{colName: 0}
 	} else if col.SQLType.Name == schemas.TimeStamp || col.SQLType.Name == schemas.TimeStampz {

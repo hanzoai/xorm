@@ -186,9 +186,9 @@ func TestGetVar(t *testing.T) {
 	assert.Equal(t, "28", valuesString["age"])
 	assert.Equal(t, "1.5", valuesString["money"])
 
-	// for mymysql driver, interface{} will be []byte, so ignore it currently
+	// for mymysql driver, any will be []byte, so ignore it currently
 	if testEngine.DriverName() != "mymysql" {
-		valuesInter := make(map[string]interface{})
+		valuesInter := make(map[string]any)
 		has, err = testEngine.Table("get_var").Where("`id` = ?", 1).Select("*").Get(&valuesInter)
 		assert.NoError(t, err)
 		assert.Equal(t, true, has)
@@ -208,7 +208,7 @@ func TestGetVar(t *testing.T) {
 	assert.Equal(t, "28", valuesSliceString[2])
 	assert.Equal(t, "1.5", valuesSliceString[3])
 
-	valuesSliceInter := make([]interface{}, 5)
+	valuesSliceInter := make([]any, 5)
 	has, err = testEngine.Table("get_var").Get(&valuesSliceInter)
 	assert.NoError(t, err)
 	assert.Equal(t, true, has)
@@ -729,7 +729,7 @@ func TestGetViaMapCond(t *testing.T) {
 		r           GetViaMapCond
 		platformStr = colMapper.Obj2Table("Platform")
 		indexStr    = colMapper.Obj2Table("Index")
-		query       = map[string]interface{}{
+		query       = map[string]any{
 			platformStr: 1,
 			indexStr:    1,
 		}

@@ -25,7 +25,7 @@ func TableNameWithSchema(dialect Dialect, tableName string) string {
 }
 
 // TableNameNoSchema returns table name with given tableName
-func TableNameNoSchema(dialect Dialect, mapper names.Mapper, tableName interface{}) string {
+func TableNameNoSchema(dialect Dialect, mapper names.Mapper, tableName any) string {
 	quote := dialect.Quoter().Quote
 	switch tt := tableName.(type) {
 	case []string:
@@ -37,16 +37,15 @@ func TableNameNoSchema(dialect Dialect, mapper names.Mapper, tableName interface
 		} else if len(tt) == 1 {
 			return quote(tt[0])
 		}
-	case []interface{}:
+	case []any:
 		l := len(tt)
 		var table string
 		if l > 0 {
-			f := tt[0]
-			switch f.(type) {
+			switch f := tt[0].(type) {
 			case string:
-				table = f.(string)
+				table = f
 			case names.TableName:
-				table = f.(names.TableName).TableName()
+				table = f.TableName()
 			default:
 				v := utils.ReflectValue(f)
 				t := v.Type()
@@ -66,11 +65,11 @@ func TableNameNoSchema(dialect Dialect, mapper names.Mapper, tableName interface
 			return quote(table)
 		}
 	case names.TableName:
-		return tableName.(names.TableName).TableName()
+		return tt.TableName()
 	case string:
-		return tableName.(string)
+		return tt
 	case reflect.Value:
-		v := tableName.(reflect.Value)
+		v := tt
 		return names.GetTableName(mapper, v)
 	default:
 		v := utils.ReflectValue(tableName)
@@ -84,7 +83,7 @@ func TableNameNoSchema(dialect Dialect, mapper names.Mapper, tableName interface
 }
 
 // FullTableName returns table name with quote and schema according parameter
-func FullTableName(dialect Dialect, mapper names.Mapper, bean interface{}, includeSchema ...bool) string {
+func FullTableName(dialect Dialect, mapper names.Mapper, bean any, includeSchema ...bool) string {
 	tbName := TableNameNoSchema(dialect, mapper, bean)
 	if len(includeSchema) > 0 && includeSchema[0] && !utils.IsSubQuery(tbName) {
 		tbName = TableNameWithSchema(dialect, tbName)

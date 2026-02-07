@@ -19,55 +19,55 @@ import (
 	"xorm.io/xorm/schemas"
 )
 
-func (statement *Statement) ifAddColUpdate(col *schemas.Column, includeVersion, includeUpdated, includeNil,
-	includeAutoIncr, update bool,
-) (bool, error) {
+func (statement *Statement) ifAddColUpdate(col *schemas.Column, includeVersion, includeUpdated,
+	includeAutoIncr bool,
+) bool {
 	columnMap := statement.ColumnMap
 	omitColumnMap := statement.OmitColumnMap
 	unscoped := statement.unscoped
 
 	if !includeVersion && col.IsVersion {
-		return false, nil
+		return false
 	}
 	if col.IsCreated && !columnMap.Contain(col.Name) {
-		return false, nil
+		return false
 	}
 	if !includeUpdated && col.IsUpdated {
-		return false, nil
+		return false
 	}
 	if !includeAutoIncr && col.IsAutoIncrement {
-		return false, nil
+		return false
 	}
 	if col.IsDeleted && !unscoped {
-		return false, nil
+		return false
 	}
 	if omitColumnMap.Contain(col.Name) {
-		return false, nil
+		return false
 	}
 	if len(columnMap) > 0 && !columnMap.Contain(col.Name) {
-		return false, nil
+		return false
 	}
 
 	if col.MapType == schemas.ONLYFROMDB {
-		return false, nil
+		return false
 	}
 
 	if statement.IncrColumns.IsColExist(col.Name) {
-		return false, nil
+		return false
 	} else if statement.DecrColumns.IsColExist(col.Name) {
-		return false, nil
+		return false
 	} else if statement.ExprColumns.IsColExist(col.Name) {
-		return false, nil
+		return false
 	}
 
-	return true, nil
+	return true
 }
 
 // BuildUpdates auto generating update columnes and values according a struct
 func (statement *Statement) BuildUpdates(tableValue reflect.Value,
 	includeVersion, includeUpdated, includeNil,
 	includeAutoIncr, update bool,
-) ([]string, []interface{}, error) {
+) ([]string, []any, error) {
 	table := statement.RefTable
 	allUseBool := statement.allUseBool
 	useAllCols := statement.useAllCols
@@ -75,14 +75,10 @@ func (statement *Statement) BuildUpdates(tableValue reflect.Value,
 	nullableMap := statement.NullableMap
 
 	colNames := make([]string, 0)
-	args := make([]interface{}, 0)
+	args := make([]any, 0)
 
 	for _, col := range table.Columns() {
-		ok, err := statement.ifAddColUpdate(col, includeVersion, includeUpdated, includeNil,
-			includeAutoIncr, update)
-		if err != nil {
-			return nil, nil, err
-		}
+		ok := statement.ifAddColUpdate(col, includeVersion, includeUpdated, includeAutoIncr)
 		if !ok {
 			continue
 		}
@@ -122,7 +118,7 @@ func (statement *Statement) BuildUpdates(tableValue reflect.Value,
 			}
 		}
 
-		var val interface{}
+		var val any
 
 		if fieldValue.CanAddr() {
 			if structConvert, ok := fieldValue.Addr().Interface().(convert.Conversion); ok {
@@ -164,14 +160,14 @@ func (statement *Statement) BuildUpdates(tableValue reflect.Value,
 					colNames = append(colNames, fmt.Sprintf("%v=?", statement.quote(col.Name)))
 				}
 				continue
-			} else if !fieldValue.IsValid() {
-				continue
-			} else {
-				// dereference ptr type to instance type
-				fieldValue = fieldValue.Elem()
-				fieldType = reflect.TypeOf(fieldValue.Interface())
-				requiredField = true
 			}
+			if !fieldValue.IsValid() {
+				continue
+			}
+			// dereference ptr type to instance type
+			fieldValue = fieldValue.Elem()
+			fieldType = reflect.TypeOf(fieldValue.Interface())
+			requiredField = true
 		}
 
 		switch fieldType.Kind() {
@@ -461,13 +457,13 @@ func (statement *Statement) writeUpdateLimit(updateWriter *builder.BytesWriter, 
 		}
 		return nil
 	default: // TODO: Oracle support needed
-		return fmt.Errorf("not implemented")
+		return errors.New("not implemented")
 	}
 }
 
-func (statement *Statement) GenConditionsFromMap(m interface{}) ([]builder.Cond, error) {
+func (statement *Statement) GenConditionsFromMap(m any) ([]builder.Cond, error) {
 	switch t := m.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		conds := []builder.Cond{}
 		for k, v := range t {
 			conds = append(conds, builder.Eq{k: v})
@@ -582,7 +578,7 @@ func (statement *Statement) writeExprSets(w *builder.BytesWriter, hasPreviousSet
 	return nil
 }
 
-func (statement *Statement) writeSetColumns(colNames []string, args []interface{}) func(w *builder.BytesWriter) error {
+func (statement *Statement) writeSetColumns(colNames []string, args []any) func(w *builder.BytesWriter) error {
 	return func(w *builder.BytesWriter) error {
 		if len(colNames) == 0 {
 			return nil
@@ -615,7 +611,7 @@ func (statement *Statement) writeSetColumns(colNames []string, args []interface{
 	}
 }
 
-func (statement *Statement) writeUpdateSets(w *builder.BytesWriter, v reflect.Value, colNames []string, args []interface{}) error {
+func (statement *Statement) writeUpdateSets(w *builder.BytesWriter, v reflect.Value, colNames []string, args []any) error {
 	// write set
 	if _, err := fmt.Fprint(w, " SET "); err != nil {
 		return err
@@ -655,7 +651,7 @@ func (statement *Statement) writeUpdateSets(w *builder.BytesWriter, v reflect.Va
 
 var ErrNoColumnsTobeUpdated = errors.New("no columns found to be updated")
 
-func (statement *Statement) WriteUpdate(updateWriter *builder.BytesWriter, cond builder.Cond, v reflect.Value, colNames []string, args []interface{}) error {
+func (statement *Statement) WriteUpdate(updateWriter *builder.BytesWriter, cond builder.Cond, v reflect.Value, colNames []string, args []any) error {
 	switch statement.dialect.URI().DBType {
 	case schemas.MYSQL:
 		return statement.writeUpdateMySQL(updateWriter, cond, v, colNames, args)
@@ -666,7 +662,7 @@ func (statement *Statement) WriteUpdate(updateWriter *builder.BytesWriter, cond 
 	}
 }
 
-func (statement *Statement) writeUpdateMySQL(updateWriter *builder.BytesWriter, cond builder.Cond, v reflect.Value, colNames []string, args []interface{}) error {
+func (statement *Statement) writeUpdateMySQL(updateWriter *builder.BytesWriter, cond builder.Cond, v reflect.Value, colNames []string, args []any) error {
 	if _, err := fmt.Fprintf(updateWriter, "UPDATE"); err != nil {
 		return err
 	}
@@ -689,7 +685,7 @@ func (statement *Statement) writeUpdateMySQL(updateWriter *builder.BytesWriter, 
 	return statement.writeUpdateLimit(updateWriter, cond)
 }
 
-func (statement *Statement) writeUpdateMSSQL(updateWriter *builder.BytesWriter, cond builder.Cond, v reflect.Value, colNames []string, args []interface{}) error {
+func (statement *Statement) writeUpdateMSSQL(updateWriter *builder.BytesWriter, cond builder.Cond, v reflect.Value, colNames []string, args []any) error {
 	if _, err := fmt.Fprintf(updateWriter, "UPDATE"); err != nil {
 		return err
 	}
@@ -725,7 +721,7 @@ func (statement *Statement) writeUpdateMSSQL(updateWriter *builder.BytesWriter, 
 }
 
 // writeUpdateCommon write update sql for non mysql && non mssql
-func (statement *Statement) writeUpdateCommon(updateWriter *builder.BytesWriter, cond builder.Cond, v reflect.Value, colNames []string, args []interface{}) error {
+func (statement *Statement) writeUpdateCommon(updateWriter *builder.BytesWriter, cond builder.Cond, v reflect.Value, colNames []string, args []any) error {
 	if _, err := fmt.Fprintf(updateWriter, "UPDATE"); err != nil {
 		return err
 	}

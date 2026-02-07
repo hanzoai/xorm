@@ -27,7 +27,7 @@ func (statement *Statement) writeInsertOutput(buf *strings.Builder, table *schem
 }
 
 // GenInsertSQL generates insert beans SQL
-func (statement *Statement) GenInsertSQL(colNames []string, args []interface{}) (string, []interface{}, error) {
+func (statement *Statement) GenInsertSQL(colNames []string, args []any) (string, []any, error) {
 	var (
 		buf       = builder.NewWriter()
 		exprs     = statement.ExprColumns
@@ -177,14 +177,14 @@ func (statement *Statement) GenInsertSQL(colNames []string, args []interface{}) 
 }
 
 // GenInsertMapSQL generates insert map SQL
-func (statement *Statement) GenInsertMapSQL(columns []string, args []interface{}) (string, []interface{}, error) {
+func (statement *Statement) GenInsertMapSQL(columns []string, args []any) (string, []any, error) {
 	var (
 		buf       = builder.NewWriter()
 		exprs     = statement.ExprColumns
 		tableName = statement.TableName()
 	)
 
-	if _, err := buf.WriteString(fmt.Sprintf("INSERT INTO %s (", statement.quote(tableName))); err != nil {
+	if _, err := fmt.Fprintf(buf, "INSERT INTO %s (", statement.quote(tableName)); err != nil {
 		return "", nil, err
 	}
 
@@ -211,7 +211,7 @@ func (statement *Statement) GenInsertMapSQL(columns []string, args []interface{}
 			}
 		}
 
-		if _, err := buf.WriteString(fmt.Sprintf(" FROM %s WHERE ", statement.quote(tableName))); err != nil {
+		if _, err := fmt.Fprintf(buf, " FROM %s WHERE ", statement.quote(tableName)); err != nil {
 			return "", nil, err
 		}
 
@@ -242,14 +242,14 @@ func (statement *Statement) GenInsertMapSQL(columns []string, args []interface{}
 	return buf.String(), buf.Args(), nil
 }
 
-func (statement *Statement) GenInsertMultipleMapSQL(columns []string, argss [][]interface{}) (string, []interface{}, error) {
+func (statement *Statement) GenInsertMultipleMapSQL(columns []string, argss [][]any) (string, []any, error) {
 	var (
 		buf       = builder.NewWriter()
 		exprs     = statement.ExprColumns
 		tableName = statement.TableName()
 	)
 
-	if _, err := buf.WriteString(fmt.Sprintf("INSERT INTO %s (", statement.quote(tableName))); err != nil {
+	if _, err := fmt.Fprintf(buf, "INSERT INTO %s (", statement.quote(tableName)); err != nil {
 		return "", nil, err
 	}
 
@@ -308,21 +308,7 @@ func (statement *Statement) writeColumns(w *builder.BytesWriter, slice []string)
 	return nil
 }
 
-func (statement *Statement) writeQuestions(w *builder.BytesWriter, length int) error {
-	for i := 0; i < length; i++ {
-		if i > 0 {
-			if _, err := fmt.Fprint(w, ","); err != nil {
-				return err
-			}
-		}
-		if _, err := fmt.Fprint(w, "?"); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (statement *Statement) oracleWriteInsertMultiple(w *builder.BytesWriter, tableName string, colNames []string, colMultiPlaces []string) error {
+func (statement *Statement) oracleWriteInsertMultiple(w *builder.BytesWriter, tableName string, colNames, colMultiPlaces []string) error {
 	if _, err := fmt.Fprint(w, "INSERT ALL"); err != nil {
 		return err
 	}
@@ -354,14 +340,14 @@ func (statement *Statement) oracleWriteInsertMultiple(w *builder.BytesWriter, ta
 	return nil
 }
 
-func (statement *Statement) WriteInsertMultiple(w *builder.BytesWriter, tableName string, colNames []string, colMultiPlaces []string) error {
+func (statement *Statement) WriteInsertMultiple(w *builder.BytesWriter, tableName string, colNames, colMultiPlaces []string) error {
 	if statement.dialect.URI().DBType == schemas.ORACLE {
 		return statement.oracleWriteInsertMultiple(w, tableName, colNames, colMultiPlaces)
 	}
 	return statement.plainWriteInsertMultiple(w, tableName, colNames, colMultiPlaces)
 }
 
-func (statement *Statement) plainWriteInsertMultiple(w *builder.BytesWriter, tableName string, colNames []string, colMultiPlaces []string) error {
+func (statement *Statement) plainWriteInsertMultiple(w *builder.BytesWriter, tableName string, colNames, colMultiPlaces []string) error {
 	if _, err := fmt.Fprint(w, "INSERT INTO "); err != nil {
 		return err
 	}

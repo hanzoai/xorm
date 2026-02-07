@@ -218,20 +218,20 @@ func (m *Migrate) createMigrationTableIfNotExists() error {
 
 func (m *Migrate) migrationDidRun(mig *Migration) (bool, error) {
 	tableName := m.db.TableName(m.options.TableName, true)
-	count, err := m.db.SQL(fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = ?", tableName, m.options.IDColumnName), mig.ID).Count()
+	count, err := m.db.SQL("SELECT COUNT(*) FROM "+tableName+" WHERE "+m.options.IDColumnName+" = ?", mig.ID).Count()
 	return count > 0, err
 }
 
 func (m *Migrate) isFirstRun() (bool, error) {
 	var count int
 	tableName := m.db.TableName(m.options.TableName, true)
-	_, err := m.db.SQL(fmt.Sprintf("SELECT COUNT(*) FROM %s", tableName)).Get(&count)
+	_, err := m.db.SQL("SELECT COUNT(*) FROM " + tableName).Get(&count)
 	return count == 0, err
 }
 
 func (m *Migrate) insertMigration(id string) error {
 	tableName := m.db.TableName(m.options.TableName, true)
-	sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES (?)", tableName, m.options.IDColumnName)
+	sql := "INSERT INTO " + tableName + " (" + m.options.IDColumnName + ") VALUES (?)"
 	_, err := m.db.Exec(sql, id)
 	return err
 }

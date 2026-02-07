@@ -104,6 +104,7 @@ func TestUnexportField(t *testing.T) {
 		private int // unexported fields will be ignored
 		Public  int
 	}
+	_ = VanilaStruct{}.private
 	table, err := parser.Parse(reflect.ValueOf(new(VanilaStruct)))
 	assert.NoError(t, err)
 	assert.EqualValues(t, "vanila_struct", table.Name)
@@ -118,6 +119,7 @@ func TestUnexportField(t *testing.T) {
 		private int `xorm:"private"` // unexported fields will be ignored
 		Public  int `xorm:"-"`
 	}
+	_ = TaggedStruct{}.private
 	table, err = parser.Parse(reflect.ValueOf(new(TaggedStruct)))
 	assert.NoError(t, err)
 	assert.EqualValues(t, "tagged_struct", table.Name)

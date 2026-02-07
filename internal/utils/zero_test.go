@@ -13,11 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type MyInt int
-type ZeroStruct struct{}
+type (
+	MyInt      int
+	ZeroStruct struct{}
+)
 
 func TestZero(t *testing.T) {
-	var zeroValues = []interface{}{
+	zeroValues := []any{
 		int8(0),
 		int16(0),
 		int(0),
@@ -95,7 +97,7 @@ func NewNonZeroStruct() NonZeroStruct {
 func TestNoZero(t *testing.T) {
 	now := time.Now()
 	nonZeroStruct := NewNonZeroStruct()
-	var nonZeroValues = []interface{}{
+	nonZeroValues := []any{
 		int8(1),
 		int16(1),
 		int(1),
@@ -121,7 +123,7 @@ func TestNoZero(t *testing.T) {
 }
 
 func TestIsValueZero(t *testing.T) {
-	var zeroReflectValues = []reflect.Value{
+	zeroReflectValues := []reflect.Value{
 		reflect.ValueOf(int8(0)),
 		reflect.ValueOf(int16(0)),
 		reflect.ValueOf(int(0)),

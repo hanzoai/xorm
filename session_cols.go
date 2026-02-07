@@ -12,7 +12,7 @@ import (
 	"xorm.io/xorm/schemas"
 )
 
-func setColumnInt(bean interface{}, col *schemas.Column, t int64) {
+func setColumnInt(bean any, col *schemas.Column, t int64) {
 	v, err := col.ValueOf(bean)
 	if err != nil {
 		return
@@ -27,7 +27,7 @@ func setColumnInt(bean interface{}, col *schemas.Column, t int64) {
 	}
 }
 
-func setColumnTime(bean interface{}, col *schemas.Column, t time.Time) {
+func setColumnTime(bean any, col *schemas.Column, t time.Time) {
 	v, err := col.ValueOf(bean)
 	if err != nil {
 		return
@@ -44,9 +44,9 @@ func setColumnTime(bean interface{}, col *schemas.Column, t time.Time) {
 	}
 }
 
-func getFlagForColumn(m map[string]bool, col *schemas.Column) (val bool, has bool) {
+func getFlagForColumn(m map[string]bool, col *schemas.Column) bool {
 	if len(m) == 0 {
-		return false, false
+		return false
 	}
 
 	n := len(col.Name)
@@ -56,27 +56,27 @@ func getFlagForColumn(m map[string]bool, col *schemas.Column) (val bool, has boo
 			continue
 		}
 		if strings.EqualFold(mk, col.Name) {
-			return m[mk], true
+			return true
 		}
 	}
 
-	return false, false
+	return false
 }
 
 // Incr provides a query string like "count = count + 1"
-func (session *Session) Incr(column string, arg ...interface{}) *Session {
+func (session *Session) Incr(column string, arg ...any) *Session {
 	session.statement.Incr(column, arg...)
 	return session
 }
 
 // Decr provides a query string like "count = count - 1"
-func (session *Session) Decr(column string, arg ...interface{}) *Session {
+func (session *Session) Decr(column string, arg ...any) *Session {
 	session.statement.Decr(column, arg...)
 	return session
 }
 
 // SetExpr provides a query string like "column = {expression}"
-func (session *Session) SetExpr(column string, expression interface{}) *Session {
+func (session *Session) SetExpr(column string, expression any) *Session {
 	session.statement.SetExpr(column, expression)
 	return session
 }

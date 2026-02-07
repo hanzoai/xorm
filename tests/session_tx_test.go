@@ -5,7 +5,6 @@
 package tests
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -54,7 +53,7 @@ func TestCombineTransaction(t *testing.T) {
 	counter := func() {
 		total, err := testEngine.Count(&Userinfo{})
 		assert.NoError(t, err)
-		fmt.Printf("----now total %v records\n", total)
+		t.Logf("----now total %v records", total)
 	}
 
 	counter()
@@ -96,7 +95,7 @@ func TestCombineTransactionSameMapper(t *testing.T) {
 	counter := func() {
 		total, err := testEngine.Count(&Userinfo{})
 		assert.NoError(t, err)
-		fmt.Printf("----now total %v records\n", total)
+		t.Logf("----now total %v records", total)
 	}
 
 	counter()
@@ -201,7 +200,7 @@ func TestInsertMulti2InterfaceTransaction(t *testing.T) {
 	err := session.Begin()
 	assert.NoError(t, err)
 
-	users := []interface{}{
+	users := []any{
 		&Multi2InterfaceTransaction{Name: "a", Alias: "A"},
 		&Multi2InterfaceTransaction{Name: "b", Alias: "B"},
 		&Multi2InterfaceTransaction{Name: "c", Alias: "C"},

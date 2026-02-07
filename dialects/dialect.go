@@ -6,6 +6,7 @@ package dialects
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -67,7 +68,7 @@ type Dialect interface {
 	AutoIncrStr() string
 
 	GetIndexes(queryer core.Queryer, ctx context.Context, tableName string) (map[string]*schemas.Index, error)
-	IndexCheckSQL(tableName, idxName string) (string, []interface{})
+	IndexCheckSQL(tableName, idxName string) (string, []any)
 	CreateIndexSQL(tableName string, index *schemas.Index) string
 	DropIndexSQL(tableName string, index *schemas.Index) string
 
@@ -81,7 +82,7 @@ type Dialect interface {
 	DropSequenceSQL(seqName string) (string, error)
 
 	GetColumns(queryer core.Queryer, ctx context.Context, tableName string) ([]string, map[string]*schemas.Column, error)
-	IsColumnExist(queryer core.Queryer, ctx context.Context, tableName string, colName string) (bool, error)
+	IsColumnExist(queryer core.Queryer, ctx context.Context, tableName, colName string) (bool, error)
 	AddColumnSQL(tableName string, col *schemas.Column) string
 	ModifyColumnSQL(tableName string, col *schemas.Column) string
 
@@ -163,21 +164,21 @@ func (db *Base) CreateSequenceSQL(ctx context.Context, queryer core.Queryer, seq
 }
 
 func (db *Base) IsSequenceExist(ctx context.Context, queryer core.Queryer, seqName string) (bool, error) {
-	return false, fmt.Errorf("unsupported sequence feature")
+	return false, errors.New("unsupported sequence feature")
 }
 
 func (db *Base) DropSequenceSQL(seqName string) (string, error) {
-	return fmt.Sprintf("DROP SEQUENCE %s", seqName), nil
+	return "DROP SEQUENCE " + seqName, nil
 }
 
 // DropTableSQL returns drop table SQL
 func (db *Base) DropTableSQL(tableName string) (string, bool) {
 	quote := db.dialect.Quoter().Quote
-	return fmt.Sprintf("DROP TABLE IF EXISTS %s", quote(tableName)), true
+	return "DROP TABLE IF EXISTS " + quote(tableName), true
 }
 
 // HasRecords returns true if the SQL has records returned
-func (db *Base) HasRecords(queryer core.Queryer, ctx context.Context, query string, args ...interface{}) (bool, error) {
+func (db *Base) HasRecords(queryer core.Queryer, ctx context.Context, query string, args ...any) (bool, error) {
 	rows, err := queryer.QueryContext(ctx, query, args...)
 	if err != nil {
 		return false, err

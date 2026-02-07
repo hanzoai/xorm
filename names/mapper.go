@@ -27,7 +27,8 @@ type CacheMapper struct {
 
 // NewCacheMapper creates a cache mapper
 func NewCacheMapper(mapper Mapper) *CacheMapper {
-	return &CacheMapper{oriMapper: mapper, obj2tableCache: make(map[string]string),
+	return &CacheMapper{
+		oriMapper: mapper, obj2tableCache: make(map[string]string),
 		table2objCache: make(map[string]string),
 	}
 }
@@ -66,8 +67,7 @@ func (m *CacheMapper) Table2Obj(t string) string {
 
 // SameMapper implements Mapper and provides same name between struct and
 // database table
-type SameMapper struct {
-}
+type SameMapper struct{}
 
 // Obj2Table implements Mapper
 func (m SameMapper) Obj2Table(o string) string {
@@ -81,8 +81,7 @@ func (m SameMapper) Table2Obj(t string) string {
 
 // SnakeMapper implements IMapper and provides name translation between
 // struct and database table
-type SnakeMapper struct {
-}
+type SnakeMapper struct{}
 
 func b2s(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))

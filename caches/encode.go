@@ -8,8 +8,8 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/gob"
+	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
 )
 
@@ -17,23 +17,23 @@ import (
 func Md5(str string) string {
 	m := md5.New()
 	_, _ = io.WriteString(m, str)
-	return fmt.Sprintf("%x", m.Sum(nil))
+	return hex.EncodeToString(m.Sum(nil))
 }
 
 // Encode Encode data
-func Encode(data interface{}) ([]byte, error) {
+func Encode(data any) ([]byte, error) {
 	// return JsonEncode(data)
 	return GobEncode(data)
 }
 
 // Decode decode data
-func Decode(data []byte, to interface{}) error {
+func Decode(data []byte, to any) error {
 	// return JsonDecode(data, to)
 	return GobDecode(data, to)
 }
 
 // GobEncode encode data with gob
-func GobEncode(data interface{}) ([]byte, error) {
+func GobEncode(data any) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(&data)
@@ -44,14 +44,14 @@ func GobEncode(data interface{}) ([]byte, error) {
 }
 
 // GobDecode decode data with gob
-func GobDecode(data []byte, to interface{}) error {
+func GobDecode(data []byte, to any) error {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
 	return dec.Decode(to)
 }
 
 // JsonEncode encode data with json
-func JsonEncode(data interface{}) ([]byte, error) {
+func JsonEncode(data any) ([]byte, error) {
 	val, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
@@ -60,6 +60,6 @@ func JsonEncode(data interface{}) ([]byte, error) {
 }
 
 // JsonDecode decode data with json
-func JsonDecode(data []byte, to interface{}) error {
+func JsonDecode(data []byte, to any) error {
 	return json.Unmarshal(data, to)
 }

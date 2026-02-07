@@ -6,6 +6,7 @@ package tests
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -58,7 +59,7 @@ func TestAutoTransaction(t *testing.T) {
 	engine := testEngine.(*xorm.Engine)
 
 	// will success
-	_, err := engine.Transaction(func(session *xorm.Session) (interface{}, error) {
+	_, err := engine.Transaction(func(session *xorm.Session) (any, error) {
 		_, err := session.Insert(TestTx{Msg: "hi"})
 		assert.NoError(t, err)
 
@@ -71,11 +72,11 @@ func TestAutoTransaction(t *testing.T) {
 	assert.EqualValues(t, true, has)
 
 	// will rollback
-	_, err = engine.Transaction(func(session *xorm.Session) (interface{}, error) {
+	_, err = engine.Transaction(func(session *xorm.Session) (any, error) {
 		_, err := session.Insert(TestTx{Msg: "hello"})
 		assert.NoError(t, err)
 
-		return nil, fmt.Errorf("rollback")
+		return nil, errors.New("rollback")
 	})
 	assert.Error(t, err)
 
@@ -84,7 +85,7 @@ func TestAutoTransaction(t *testing.T) {
 	assert.EqualValues(t, false, has)
 }
 
-func assertSync(t *testing.T, beans ...interface{}) {
+func assertSync(t *testing.T, beans ...any) {
 	for _, bean := range beans {
 		t.Run(testEngine.TableName(bean, true), func(t *testing.T) {
 			assert.NoError(t, testEngine.DropTables(bean))
@@ -252,7 +253,7 @@ func TestDBVersion(t *testing.T) {
 	version, err := testEngine.DBVersion()
 	assert.NoError(t, err)
 
-	fmt.Println(testEngine.Dialect().URI().DBType, "version is", version)
+	t.Log(testEngine.Dialect().URI().DBType, "version is", version)
 }
 
 func TestGetColumnsComment(t *testing.T) {

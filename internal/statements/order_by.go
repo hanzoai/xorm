@@ -12,28 +12,28 @@ import (
 )
 
 type orderBy struct {
-	orderStr  interface{}
-	orderArgs []interface{}
+	orderStr  any
+	orderArgs []any
 	direction string // ASC, DESC or "", "" means raw orderStr
 }
 
 func (ob orderBy) CheckValid() error {
 	if ob.orderStr == nil {
-		return fmt.Errorf("order by string is nil")
+		return errors.New("order by string is nil")
 	}
 	switch t := ob.orderStr.(type) {
 	case string:
 		if t == "" {
-			return fmt.Errorf("order by string is empty")
+			return errors.New("order by string is empty")
 		}
 		return nil
 	case *builder.Expression:
 		if t.Content() == "" {
-			return fmt.Errorf("order by string is empty")
+			return errors.New("order by string is empty")
 		}
 		return nil
 	default:
-		return fmt.Errorf("order by string is not string or builder.Expression")
+		return errors.New("order by string is not string or builder.Expression")
 	}
 }
 
@@ -97,7 +97,7 @@ func (statement *Statement) writeOrderBys(w *builder.BytesWriter) error {
 }
 
 // OrderBy generate "Order By order" statement
-func (statement *Statement) OrderBy(order interface{}, args ...interface{}) *Statement {
+func (statement *Statement) OrderBy(order any, args ...any) *Statement {
 	ob := orderBy{order, args, ""}
 	if err := ob.CheckValid(); err != nil {
 		statement.LastError = err

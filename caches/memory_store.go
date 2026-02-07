@@ -12,17 +12,17 @@ var _ CacheStore = NewMemoryStore()
 
 // MemoryStore represents in-memory store
 type MemoryStore struct {
-	store map[interface{}]interface{}
+	store map[any]any
 	mutex sync.RWMutex
 }
 
 // NewMemoryStore creates a new store in memory
 func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{store: make(map[interface{}]interface{})}
+	return &MemoryStore{store: make(map[any]any)}
 }
 
 // Put puts object into store
-func (s *MemoryStore) Put(key string, value interface{}) error {
+func (s *MemoryStore) Put(key string, value any) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.store[key] = value
@@ -30,7 +30,7 @@ func (s *MemoryStore) Put(key string, value interface{}) error {
 }
 
 // Get gets object from store
-func (s *MemoryStore) Get(key string) (interface{}, error) {
+func (s *MemoryStore) Get(key string) (any, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	if v, ok := s.store[key]; ok {

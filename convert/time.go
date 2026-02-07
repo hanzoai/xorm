@@ -16,7 +16,7 @@ import (
 
 // String2Time converts a string to time with original location
 // be aware for time strings (HH:mm:ss) returns zero year (LMT) for converted location
-func String2Time(s string, originalLocation *time.Location, convertedLocation *time.Location) (*time.Time, error) {
+func String2Time(s string, originalLocation, convertedLocation *time.Location) (*time.Time, error) {
 	if len(s) == 19 {
 		if s == utils.ZeroTime0 || s == utils.ZeroTime1 {
 			return &time.Time{}, nil
@@ -85,25 +85,24 @@ func String2Time(s string, originalLocation *time.Location, convertedLocation *t
 		if err != nil {
 			return nil, err
 		}
-		dt = dt.AddDate(2006, 01, 02).In(convertedLocation)
+		dt = dt.AddDate(2006, 0o1, 0o2).In(convertedLocation)
 		// back to zero year
-		dt = dt.AddDate(-2006, -01, -02)
+		dt = dt.AddDate(-2006, -0o1, -0o2)
 		return &dt, nil
-	} else {
-		i, err := strconv.ParseInt(s, 10, 64)
-		if err == nil {
-			if i == 0 {
-				return &time.Time{}, nil
-			}
-			tm := time.Unix(i, 0).In(convertedLocation)
-			return &tm, nil
+	}
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err == nil {
+		if i == 0 {
+			return &time.Time{}, nil
 		}
+		tm := time.Unix(i, 0).In(convertedLocation)
+		return &tm, nil
 	}
 	return nil, fmt.Errorf("unsupported conversion from %s to time", s)
 }
 
 // AsTime converts interface as time
-func AsTime(src interface{}, dbLoc *time.Location, uiLoc *time.Location) (*time.Time, error) {
+func AsTime(src any, dbLoc, uiLoc *time.Location) (*time.Time, error) {
 	switch t := src.(type) {
 	case string:
 		return String2Time(t, dbLoc, uiLoc)

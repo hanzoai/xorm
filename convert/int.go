@@ -13,7 +13,7 @@ import (
 )
 
 // AsInt64 converts interface as int64
-func AsInt64(src interface{}) (int64, error) {
+func AsInt64(src any) (int64, error) {
 	switch v := src.(type) {
 	case int:
 		return int64(v), nil
@@ -94,7 +94,7 @@ func AsInt64(src interface{}) (int64, error) {
 	case *sql.NullInt32:
 		return int64(v.Int32), nil
 	case *sql.NullInt64:
-		return int64(v.Int64), nil
+		return v.Int64, nil
 	}
 
 	rv := reflect.ValueOf(src)
@@ -112,7 +112,7 @@ func AsInt64(src interface{}) (int64, error) {
 }
 
 // AsUint64 converts interface as uint64
-func AsUint64(src interface{}) (uint64, error) {
+func AsUint64(src any) (uint64, error) {
 	switch v := src.(type) {
 	case int:
 		return uint64(v), nil
@@ -151,7 +151,7 @@ func AsUint64(src interface{}) (uint64, error) {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return uint64(rv.Int()), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return uint64(rv.Uint()), nil
+		return rv.Uint(), nil
 	case reflect.Float64, reflect.Float32:
 		return uint64(rv.Float()), nil
 	case reflect.String:
@@ -171,7 +171,7 @@ type NullUint64 struct {
 }
 
 // Scan implements the Scanner interface.
-func (n *NullUint64) Scan(value interface{}) error {
+func (n *NullUint64) Scan(value any) error {
 	if value == nil {
 		n.Uint64, n.Valid = 0, false
 		return nil
@@ -201,7 +201,7 @@ type NullUint32 struct {
 }
 
 // Scan implements the Scanner interface.
-func (n *NullUint32) Scan(value interface{}) error {
+func (n *NullUint32) Scan(value any) error {
 	if value == nil {
 		n.Uint32, n.Valid = 0, false
 		return nil
