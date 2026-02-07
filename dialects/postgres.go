@@ -1530,10 +1530,10 @@ func (p *pqDriver) GenScanResult(colType string) (any, error) {
 	case "VARCHAR", "TEXT":
 		var s sql.NullString
 		return &s, nil
-	case "BIGINT", "BIGSERIAL":
+	case "BIGINT", "BIGSERIAL", "INT8":
 		var s sql.NullInt64
 		return &s, nil
-	case "SMALLINT", "INT", "INT8", "INT4", "INTEGER", "SERIAL":
+	case "SMALLINT", "INT", "INT4", "INTEGER", "SERIAL":
 		var s sql.NullInt32
 		return &s, nil
 	case "FLOAT", "FLOAT4", "REAL", "DOUBLE PRECISION":
