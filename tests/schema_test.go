@@ -333,7 +333,7 @@ func TestIsTableEmpty(t *testing.T) {
 		Created     time.Time `xorm:"created"`
 		ILike       int
 		PageView    int
-		From_url    string // nolint
+		From_url    string
 		Pre_url     string `xorm:"unique"` // pre view image's url
 		Uid         int64
 	}
@@ -726,7 +726,7 @@ func TestSyncWithOptions(t *testing.T) {
 	assert.ElementsMatch(t, getKeysFromMap(tableInfoFromStruct.Indexes), getKeysFromMap(getIndicesOfBeanFromDB(t, &SyncWithOpts1{})))
 }
 
-func getIndicesOfBeanFromDB(t *testing.T, bean interface{}) map[string]*schemas.Index {
+func getIndicesOfBeanFromDB(t *testing.T, bean any) map[string]*schemas.Index {
 	dbm, err := testEngine.DBMetas()
 	assert.NoError(t, err)
 
@@ -779,13 +779,13 @@ func TestSync2_3(t *testing.T) {
 		tables, err := testEngine.DBMetas()
 		assert.NoError(t, err)
 		tableInfo, err := testEngine.TableInfo(new(SyncTestUser2))
+		assert.NoError(t, err)
 
 		assert.EqualValues(t, tables[0].GetColumn("id").IsAutoIncrement, tableInfo.GetColumn("id").IsAutoIncrement)
 		assert.EqualValues(t, tables[0].GetColumn("id").Name, tableInfo.GetColumn("id").Name)
 		assert.EqualValues(t, tables[0].GetColumn("id").SQLType.Name, tableInfo.GetColumn("id").SQLType.Name)
 		assert.EqualValues(t, tables[0].GetColumn("id").Nullable, tableInfo.GetColumn("id").Nullable)
 		assert.EqualValues(t, tables[0].GetColumn("id").Comment, tableInfo.GetColumn("id").Comment)
-
 	}
 }
 

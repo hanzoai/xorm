@@ -14,7 +14,7 @@ func TestLevelDBStore(t *testing.T) {
 	store, err := NewLevelDBStore("./level.db")
 	assert.NoError(t, err)
 
-	var kvs = map[string]interface{}{
+	kvs := map[string]any{
 		"a": "b",
 	}
 	for k, v := range kvs {

@@ -1,7 +1,6 @@
 package migrate
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -139,6 +138,6 @@ func TestMissingID(t *testing.T) {
 }
 
 func tableCount(db *xorm.Engine, tableName string) (count int) {
-	_, _ = db.SQL(fmt.Sprintf("SELECT COUNT(*) FROM %s", tableName)).Get(&count)
-	return
+	_, _ = db.SQL("SELECT COUNT(*) FROM " + tableName).Get(&count)
+	return count
 }

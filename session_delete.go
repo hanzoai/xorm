@@ -16,7 +16,7 @@ import (
 // ErrNeedDeletedCond delete needs less one condition error
 var ErrNeedDeletedCond = errors.New("Delete action needs at least one condition")
 
-func (session *Session) cacheDelete(table *schemas.Table, tableName, sqlStr string, args ...interface{}) error {
+func (session *Session) cacheDelete(table *schemas.Table, tableName, sqlStr string, args ...any) error {
 	if table == nil ||
 		session.tx != nil {
 		return ErrCacheFailed
@@ -49,7 +49,7 @@ func (session *Session) cacheDelete(table *schemas.Table, tableName, sqlStr stri
 		if len(resultsSlice) > 0 {
 			for _, data := range resultsSlice {
 				var id int64
-				var pk schemas.PK = make([]interface{}, 0)
+				var pk schemas.PK = make([]any, 0)
 				for _, col := range pkColumns {
 					if v, ok := data[col.Name]; !ok {
 						return errors.New("no id")
@@ -85,20 +85,22 @@ func (session *Session) cacheDelete(table *schemas.Table, tableName, sqlStr stri
 
 // Delete records, bean's non-empty fields are conditions
 // At least one condition must be set.
-func (session *Session) Delete(beans ...interface{}) (int64, error) {
+func (session *Session) Delete(beans ...any) (int64, error) {
 	return session.delete(beans, true)
 }
 
 // Truncate records, bean's non-empty fields are conditions
 // In contrast to Delete this method allows deletes without conditions.
-func (session *Session) Truncate(beans ...interface{}) (int64, error) {
+func (session *Session) Truncate(beans ...any) (int64, error) {
 	return session.delete(beans, false)
 }
 
-func (session *Session) delete(beans []interface{}, mustHaveConditions bool) (int64, error) {
+func (session *Session) delete(beans []any, mustHaveConditions bool) (int64, error) {
 	if session.isAutoClose {
 		defer session.Close()
 	}
+
+	defer cleanupProcessorsClosures(&session.afterClosures)
 
 	if session.statement.LastError != nil {
 		return 0, session.statement.LastError
@@ -106,7 +108,7 @@ func (session *Session) delete(beans []interface{}, mustHaveConditions bool) (in
 
 	var (
 		err  error
-		bean interface{}
+		bean any
 	)
 	if len(beans) > 0 {
 		bean = beans[0]
@@ -116,7 +118,7 @@ func (session *Session) delete(beans []interface{}, mustHaveConditions bool) (in
 
 		executeBeforeClosures(session, bean)
 
-		if processor, ok := interface{}(bean).(BeforeDeleteProcessor); ok {
+		if processor, ok := bean.(BeforeDeleteProcessor); ok {
 			processor.BeforeDelete()
 		}
 
@@ -148,13 +150,13 @@ func (session *Session) delete(beans []interface{}, mustHaveConditions bool) (in
 		}
 
 		colName := deletedColumn.Name
-		session.afterClosures = append(session.afterClosures, func(bean interface{}) {
+		session.afterClosures = append(session.afterClosures, func(bean any) {
 			col := table.GetColumn(colName)
 			setColumnTime(bean, col, t)
 		})
 	}
 
-	argsForCache := make([]interface{}, 0, len(deleteSQLWriter.Args())*2)
+	argsForCache := make([]any, 0, len(deleteSQLWriter.Args())*2)
 	copy(argsForCache, deleteSQLWriter.Args())
 	argsForCache = append(deleteSQLWriter.Args(), argsForCache...)
 
@@ -174,7 +176,7 @@ func (session *Session) delete(beans []interface{}, mustHaveConditions bool) (in
 			for _, closure := range session.afterClosures {
 				closure(bean)
 			}
-			if processor, ok := interface{}(bean).(AfterDeleteProcessor); ok {
+			if processor, ok := bean.(AfterDeleteProcessor); ok {
 				processor.AfterDelete()
 			}
 		} else {
@@ -183,12 +185,12 @@ func (session *Session) delete(beans []interface{}, mustHaveConditions bool) (in
 				if value, has := session.afterDeleteBeans[beans[0]]; has && value != nil {
 					*value = append(*value, session.afterClosures...)
 				} else {
-					afterClosures := make([]func(interface{}), lenAfterClosures)
+					afterClosures := make([]func(any), lenAfterClosures)
 					copy(afterClosures, session.afterClosures)
 					session.afterDeleteBeans[bean] = &afterClosures
 				}
 			} else {
-				if _, ok := interface{}(bean).(AfterDeleteProcessor); ok {
+				if _, ok := bean.(AfterDeleteProcessor); ok {
 					session.afterDeleteBeans[bean] = nil
 				}
 			}

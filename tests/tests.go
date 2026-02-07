@@ -58,7 +58,7 @@ func createEngine(dbType, connStr string) error {
 				}
 				createDBSQL := "If(db_id(N'xorm_test') IS NULL) BEGIN CREATE DATABASE xorm_test"
 				if collation != nil && *collation != "" {
-					createDBSQL += fmt.Sprintf(" COLLATE %s", *collation)
+					createDBSQL += " COLLATE " + *collation
 				}
 				createDBSQL += "; END;"
 				if _, err = db.Exec(createDBSQL); err != nil {
@@ -147,11 +147,12 @@ func createEngine(dbType, connStr string) error {
 			}
 		}
 
-		if *quotePolicyStr == "none" {
+		switch *quotePolicyStr {
+		case "none":
 			testEngine.SetQuotePolicy(dialects.QuotePolicyNone)
-		} else if *quotePolicyStr == "reserved" {
+		case "reserved":
 			testEngine.SetQuotePolicy(dialects.QuotePolicyReserved)
-		} else {
+		default:
 			testEngine.SetQuotePolicy(dialects.QuotePolicyAlways)
 		}
 
@@ -168,7 +169,7 @@ func createEngine(dbType, connStr string) error {
 	if err != nil {
 		return err
 	}
-	tableNames := make([]interface{}, 0, len(tables))
+	tableNames := make([]any, 0, len(tables))
 	for _, table := range tables {
 		tableNames = append(tableNames, table.Name)
 	}
@@ -185,21 +186,22 @@ func MainTest(m *testing.M) {
 	flag.Parse()
 
 	dbType = *db
-	if *db == "sqlite3" {
+	switch *db {
+	case "sqlite3":
 		if ptrConnStr == nil {
 			connString = "./test_sqlite3.db?cache=shared&mode=rwc"
 		} else {
 			connString = *ptrConnStr
 		}
-	} else if *db == "sqlite" {
+	case "sqlite":
 		if ptrConnStr == nil {
 			connString = "./test_sqlite.db?cache=shared&mode=rwc"
 		} else {
 			connString = *ptrConnStr
 		}
-	} else {
+	default:
 		if ptrConnStr == nil {
-			fmt.Println("you should indicate conn string")
+			fmt.Fprintln(os.Stderr, "you should indicate conn string")
 			return
 		}
 		connString = *ptrConnStr
@@ -213,10 +215,10 @@ func MainTest(m *testing.M) {
 		dbType = dbs[i]
 		connString = conns[i]
 		testEngine = nil
-		fmt.Println("testing", dbType, connString)
+		fmt.Fprintln(os.Stderr, "testing", dbType, connString)
 
 		if err := PrepareEngine(); err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 			return
 		}

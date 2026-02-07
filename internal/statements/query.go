@@ -15,7 +15,7 @@ import (
 )
 
 // GenQuerySQL generate query SQL
-func (statement *Statement) GenQuerySQL(sqlOrArgs ...interface{}) (string, []interface{}, error) {
+func (statement *Statement) GenQuerySQL(sqlOrArgs ...any) (string, []any, error) {
 	if len(sqlOrArgs) > 0 {
 		return statement.ConvertSQLOrArgs(sqlOrArgs...)
 	}
@@ -24,7 +24,7 @@ func (statement *Statement) GenQuerySQL(sqlOrArgs ...interface{}) (string, []int
 		return statement.GenRawSQL(), statement.RawParams, nil
 	}
 
-	if len(statement.TableName()) <= 0 {
+	if len(statement.TableName()) == 0 {
 		return "", nil, ErrTableNotFound
 	}
 
@@ -40,7 +40,7 @@ func (statement *Statement) GenQuerySQL(sqlOrArgs ...interface{}) (string, []int
 }
 
 // GenSumSQL generates sum SQL
-func (statement *Statement) GenSumSQL(bean interface{}, columns ...string) (string, []interface{}, error) {
+func (statement *Statement) GenSumSQL(bean any, columns ...string) (string, []any, error) {
 	if statement.RawSQL != "" {
 		return statement.GenRawSQL(), statement.RawParams, nil
 	}
@@ -71,7 +71,7 @@ func (statement *Statement) GenSumSQL(bean interface{}, columns ...string) (stri
 }
 
 // GenGetSQL generates Get SQL
-func (statement *Statement) GenGetSQL(bean interface{}) (string, []interface{}, error) {
+func (statement *Statement) GenGetSQL(bean any) (string, []any, error) {
 	var isStruct bool
 	if bean != nil {
 		v := rValue(bean)
@@ -127,7 +127,7 @@ func (statement *Statement) GenGetSQL(bean interface{}) (string, []interface{}, 
 }
 
 // GenCountSQL generates the SQL for counting
-func (statement *Statement) GenCountSQL(beans ...interface{}) (string, []interface{}, error) {
+func (statement *Statement) GenCountSQL(beans ...any) (string, []any, error) {
 	if statement.RawSQL != "" {
 		return statement.GenRawSQL(), statement.RawParams, nil
 	}
@@ -142,7 +142,7 @@ func (statement *Statement) GenCountSQL(beans ...interface{}) (string, []interfa
 	}
 
 	selectSQL := statement.SelectStr
-	if len(selectSQL) <= 0 {
+	if len(selectSQL) == 0 {
 		if statement.IsDistinct {
 			selectSQL = fmt.Sprintf("count(DISTINCT %s)", statement.ColumnStr())
 		} else if statement.ColumnStr() != "" {
@@ -263,18 +263,18 @@ func (statement *Statement) writeSelect(buf *builder.BytesWriter, columnStr stri
 				// ORDER BY is mandatory to use OFFSET and FETCH clause (only in sqlserver)
 				if statement.LimitN == nil && statement.Start == 0 {
 					// no need to add
-					return
+					return nil
 				}
 				if statement.IsDistinct || len(statement.GroupByStr) > 0 || isCounting {
 					// the order-by column should be one of distincts or group-bys
 					// order by the first column
 					_, err = bw.WriteString(" ORDER BY 1 ASC")
-					return
+					return err
 				}
 				if statement.RefTable == nil || len(statement.RefTable.PrimaryKeys) != 1 {
 					// no primary key, order by the first column
 					_, err = bw.WriteString(" ORDER BY 1 ASC")
-					return
+					return err
 				}
 				// order by primary key
 				statement.orderBy = []orderBy{{orderStr: statement.colName(statement.RefTable.GetColumn(statement.RefTable.PrimaryKeys[0]), statement.TableName()), direction: "ASC"}}
@@ -287,12 +287,12 @@ func (statement *Statement) writeSelect(buf *builder.BytesWriter, columnStr stri
 }
 
 // GenExistSQL generates Exist SQL
-func (statement *Statement) GenExistSQL(bean ...interface{}) (string, []interface{}, error) {
+func (statement *Statement) GenExistSQL(bean ...any) (string, []any, error) {
 	if statement.RawSQL != "" {
 		return statement.GenRawSQL(), statement.RawParams, nil
 	}
 
-	var b interface{}
+	var b any
 	if len(bean) > 0 {
 		b = bean[0]
 		beanValue := reflect.ValueOf(bean[0])
@@ -307,7 +307,7 @@ func (statement *Statement) GenExistSQL(bean ...interface{}) (string, []interfac
 		}
 	}
 	tableName := statement.TableName()
-	if len(tableName) <= 0 {
+	if len(tableName) == 0 {
 		return "", nil, ErrTableNotFound
 	}
 	if statement.RefTable != nil {
@@ -394,12 +394,12 @@ func (statement *Statement) genSelectColumnStr() string {
 }
 
 // GenFindSQL generates Find SQL
-func (statement *Statement) GenFindSQL(autoCond builder.Cond) (string, []interface{}, error) {
+func (statement *Statement) GenFindSQL(autoCond builder.Cond) (string, []any, error) {
 	if statement.RawSQL != "" {
 		return statement.GenRawSQL(), statement.RawParams, nil
 	}
 
-	if len(statement.TableName()) <= 0 {
+	if len(statement.TableName()) == 0 {
 		return "", nil, ErrTableNotFound
 	}
 

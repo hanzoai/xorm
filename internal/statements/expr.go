@@ -24,7 +24,7 @@ func (err ErrUnsupportedExprType) Error() string {
 // Expr represents an SQL express
 type Expr struct {
 	ColName string
-	Arg     interface{}
+	Arg     any
 }
 
 // WriteArgs writes args to the writer
@@ -44,7 +44,7 @@ func (expr *Expr) WriteArgs(w *builder.BytesWriter) error {
 		if arg == "" {
 			arg = "''"
 		}
-		if _, err := w.WriteString(fmt.Sprintf("%v", arg)); err != nil {
+		if _, err := w.WriteString(arg); err != nil {
 			return err
 		}
 	default:
@@ -59,14 +59,14 @@ func (expr *Expr) WriteArgs(w *builder.BytesWriter) error {
 type exprParams []Expr
 
 func (exprs exprParams) ColNames() []string {
-	var cols = make([]string, 0, len(exprs))
+	cols := make([]string, 0, len(exprs))
 	for _, expr := range exprs {
 		cols = append(cols, expr.ColName)
 	}
 	return cols
 }
 
-func (exprs *exprParams) Add(name string, arg interface{}) {
+func (exprs *exprParams) Add(name string, arg any) {
 	*exprs = append(*exprs, Expr{name, arg})
 }
 

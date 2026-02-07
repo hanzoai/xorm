@@ -20,21 +20,19 @@ import (
 	"xorm.io/xorm/schemas"
 )
 
-var (
-	// ErrObjectIsNil return error of object is nil
-	ErrObjectIsNil = errors.New("object should not be nil")
-)
+// ErrObjectIsNil return error of object is nil
+var ErrObjectIsNil = errors.New("object should not be nil")
 
 // Get retrieve one record from database, bean's non-empty fields
 // will be as conditions
-func (session *Session) Get(beans ...interface{}) (bool, error) {
+func (session *Session) Get(beans ...any) (bool, error) {
 	if session.isAutoClose {
 		defer session.Close()
 	}
 	return session.get(beans...)
 }
 
-func isPtrOfTime(v interface{}) bool {
+func isPtrOfTime(v any) bool {
 	if _, ok := v.(*time.Time); ok {
 		return true
 	}
@@ -47,7 +45,7 @@ func isPtrOfTime(v interface{}) bool {
 	return el.Type().ConvertibleTo(schemas.TimeType)
 }
 
-func (session *Session) get(beans ...interface{}) (bool, error) {
+func (session *Session) get(beans ...any) (bool, error) {
 	defer session.resetStatement()
 
 	if session.statement.LastError != nil {
@@ -66,7 +64,7 @@ func (session *Session) get(beans ...interface{}) (bool, error) {
 		return false, ErrObjectIsNil
 	}
 
-	var isStruct = beanValue.Elem().Kind() == reflect.Struct && !isPtrOfTime(beans[0])
+	isStruct := beanValue.Elem().Kind() == reflect.Struct && !isPtrOfTime(beans[0])
 	if isStruct {
 		if err := session.statement.SetRefBean(beans[0]); err != nil {
 			return false, err
@@ -74,7 +72,7 @@ func (session *Session) get(beans ...interface{}) (bool, error) {
 	}
 
 	var sqlStr string
-	var args []interface{}
+	var args []any
 	var err error
 
 	if session.statement.RawSQL == "" {
@@ -129,7 +127,7 @@ func (session *Session) get(beans ...interface{}) (bool, error) {
 	return true, nil
 }
 
-func isScannableStruct(bean interface{}, typeLen int) bool {
+func isScannableStruct(bean any, typeLen int) bool {
 	switch bean.(type) {
 	case *time.Time:
 		return false
@@ -143,7 +141,7 @@ func isScannableStruct(bean interface{}, typeLen int) bool {
 	return true
 }
 
-func (session *Session) nocacheGet(beanKind reflect.Kind, table *schemas.Table, beans []interface{}, sqlStr string, args ...interface{}) (bool, error) {
+func (session *Session) nocacheGet(beanKind reflect.Kind, table *schemas.Table, beans []any, sqlStr string, args ...any) (bool, error) {
 	rows, err := session.queryRows(sqlStr, args...)
 	if err != nil {
 		return false, err
@@ -174,7 +172,7 @@ func (session *Session) nocacheGet(beanKind reflect.Kind, table *schemas.Table, 
 	return true, session.executeProcessors()
 }
 
-func (session *Session) scan(rows *core.Rows, table *schemas.Table, firstBeanKind reflect.Kind, beans []interface{}, columnsSchema *ColumnsSchema, types []*sql.ColumnType, fields []string) error {
+func (session *Session) scan(rows *core.Rows, table *schemas.Table, firstBeanKind reflect.Kind, beans []any, columnsSchema *ColumnsSchema, types []*sql.ColumnType, fields []string) error {
 	if len(beans) == 1 {
 		bean := beans[0]
 		switch firstBeanKind {
@@ -204,7 +202,7 @@ func (session *Session) scan(rows *core.Rows, table *schemas.Table, firstBeanKin
 	return session.engine.scan(rows, fields, types, beans...)
 }
 
-func (session *Session) getSlice(rows *core.Rows, types []*sql.ColumnType, fields []string, bean interface{}) error {
+func (session *Session) getSlice(rows *core.Rows, types []*sql.ColumnType, fields []string, bean any) error {
 	switch t := bean.(type) {
 	case *[]string:
 		res, err := session.engine.scanStringInterface(rows, fields, types)
@@ -212,7 +210,7 @@ func (session *Session) getSlice(rows *core.Rows, types []*sql.ColumnType, field
 			return err
 		}
 
-		var needAppend = len(*t) == 0 // both support slice is empty or has been initlized
+		needAppend := len(*t) == 0 // both support slice is empty or has been initlized
 		for i, r := range res {
 			if needAppend {
 				*t = append(*t, r.(*sql.NullString).String)
@@ -221,12 +219,12 @@ func (session *Session) getSlice(rows *core.Rows, types []*sql.ColumnType, field
 			}
 		}
 		return nil
-	case *[]interface{}:
+	case *[]any:
 		scanResults, err := session.engine.scanInterfaces(rows, fields, types)
 		if err != nil {
 			return err
 		}
-		var needAppend = len(*t) == 0
+		needAppend := len(*t) == 0
 		for ii := range fields {
 			s, err := convert.Interface2Interface(session.engine.DatabaseTZ, scanResults[ii])
 			if err != nil {
@@ -244,7 +242,7 @@ func (session *Session) getSlice(rows *core.Rows, types []*sql.ColumnType, field
 	}
 }
 
-func (session *Session) getMap(rows *core.Rows, types []*sql.ColumnType, fields []string, bean interface{}) error {
+func (session *Session) getMap(rows *core.Rows, types []*sql.ColumnType, fields []string, bean any) error {
 	switch t := bean.(type) {
 	case *map[string]string:
 		scanResults, err := session.engine.scanStringInterface(rows, fields, types)
@@ -255,7 +253,7 @@ func (session *Session) getMap(rows *core.Rows, types []*sql.ColumnType, fields 
 			(*t)[key] = scanResults[ii].(*sql.NullString).String
 		}
 		return nil
-	case *map[string]interface{}:
+	case *map[string]any:
 		scanResults, err := session.engine.scanInterfaces(rows, fields, types)
 		if err != nil {
 			return err
@@ -273,7 +271,7 @@ func (session *Session) getMap(rows *core.Rows, types []*sql.ColumnType, fields 
 	}
 }
 
-func (session *Session) cacheGet(bean interface{}, sqlStr string, args ...interface{}) (has bool, err error) {
+func (session *Session) cacheGet(bean any, sqlStr string, args ...any) (has bool, err error) {
 	// if has no reftable, then don't use cache currently
 	if !session.canCache() {
 		return false, ErrCacheFailed
@@ -294,7 +292,7 @@ func (session *Session) cacheGet(bean interface{}, sqlStr string, args ...interf
 	table := session.statement.RefTable
 	ids, err := caches.GetCacheSql(cacher, tableName, newsql, args)
 	if err != nil {
-		var res = make([]string, len(table.PrimaryKeys))
+		res := make([]string, len(table.PrimaryKeys))
 		rows, err := session.NoCache().queryRows(newsql, args...)
 		if err != nil {
 			return false, err
@@ -313,7 +311,7 @@ func (session *Session) cacheGet(bean interface{}, sqlStr string, args ...interf
 			return false, ErrCacheFailed
 		}
 
-		var pk schemas.PK = make([]interface{}, len(table.PrimaryKeys))
+		var pk schemas.PK = make([]any, len(table.PrimaryKeys))
 		for i, col := range table.PKColumns() {
 			if col.SQLType.IsText() {
 				pk[i] = res[i]
@@ -349,7 +347,7 @@ func (session *Session) cacheGet(bean interface{}, sqlStr string, args ...interf
 		cacheBean := cacher.GetBean(tableName, sid)
 		if cacheBean == nil {
 			cacheBean = bean
-			has, err = session.nocacheGet(reflect.Struct, table, []interface{}{cacheBean}, sqlStr, args...)
+			has, err = session.nocacheGet(reflect.Struct, table, []any{cacheBean}, sqlStr, args...)
 			if err != nil || !has {
 				return has, err
 			}

@@ -13,7 +13,7 @@ import (
 )
 
 // AsFloat64 convets interface as float64
-func AsFloat64(src interface{}) (float64, error) {
+func AsFloat64(src any) (float64, error) {
 	switch v := src.(type) {
 	case int:
 		return float64(v), nil
@@ -64,7 +64,7 @@ func AsFloat64(src interface{}) (float64, error) {
 }
 
 // AsBigFloat converts interface as big.Float
-func AsBigFloat(src interface{}) (*big.Float, error) {
+func AsBigFloat(src any) (*big.Float, error) {
 	res := big.NewFloat(0)
 	switch v := src.(type) {
 	case int:
@@ -80,7 +80,7 @@ func AsBigFloat(src interface{}) (*big.Float, error) {
 		res.SetInt64(int64(v))
 		return res, nil
 	case int64:
-		res.SetInt64(int64(v))
+		res.SetInt64(v)
 		return res, nil
 	case uint:
 		res.SetUint64(uint64(v))
@@ -95,7 +95,7 @@ func AsBigFloat(src interface{}) (*big.Float, error) {
 		res.SetUint64(uint64(v))
 		return res, nil
 	case uint64:
-		res.SetUint64(uint64(v))
+		res.SetUint64(v)
 		return res, nil
 	case []byte:
 		res.SetString(string(v))
@@ -117,7 +117,7 @@ func AsBigFloat(src interface{}) (*big.Float, error) {
 		return nil, nil
 	case *sql.NullInt64:
 		if v.Valid {
-			res.SetInt64(int64(v.Int64))
+			res.SetInt64(v.Int64)
 			return res, nil
 		}
 		return nil, nil

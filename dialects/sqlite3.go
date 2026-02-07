@@ -211,9 +211,10 @@ func (db *sqlite3) SetQuotePolicy(quotePolicy QuotePolicy) {
 func (db *sqlite3) SQLType(c *schemas.Column) string {
 	switch t := c.SQLType.Name; t {
 	case schemas.Bool:
-		if c.Default == "true" {
+		switch c.Default {
+		case "true":
 			c.Default = "1"
-		} else if c.Default == "false" {
+		case "false":
 			c.Default = "0"
 		}
 		return schemas.Integer
@@ -268,8 +269,8 @@ func (db *sqlite3) AutoIncrStr() string {
 	return "AUTOINCREMENT"
 }
 
-func (db *sqlite3) IndexCheckSQL(tableName, idxName string) (string, []interface{}) {
-	args := []interface{}{idxName}
+func (db *sqlite3) IndexCheckSQL(tableName, idxName string) (string, []any) {
+	args := []any{idxName}
 	return "SELECT name FROM sqlite_master WHERE type='index' and name = ?", args
 }
 
@@ -342,7 +343,7 @@ func splitColStr(colStr string) []string {
 	return results
 }
 
-func parseString(colStr string) (*schemas.Column, error) {
+func parseString(colStr string) *schemas.Column {
 	fields := splitColStr(colStr)
 	col := new(schemas.Column)
 	col.Indexes = make(map[string]int)
@@ -373,11 +374,11 @@ func parseString(colStr string) (*schemas.Column, error) {
 			col.DefaultIsEmpty = false
 		}
 	}
-	return col, nil
+	return col
 }
 
 func (db *sqlite3) GetColumns(queryer core.Queryer, ctx context.Context, tableName string) ([]string, map[string]*schemas.Column, error) {
-	args := []interface{}{tableName}
+	args := []any{tableName}
 	s := "SELECT sql FROM sqlite_master WHERE type='table' and name = ?"
 
 	rows, err := queryer.QueryContext(ctx, s, args...)
@@ -426,11 +427,7 @@ func (db *sqlite3) GetColumns(queryer core.Queryer, ctx context.Context, tableNa
 			continue
 		}
 
-		col, err := parseString(colStr)
-		if err != nil {
-			return colSeq, cols, err
-		}
-
+		col := parseString(colStr)
 		cols[col.Name] = col
 		colSeq = append(colSeq, col.Name)
 	}
@@ -438,7 +435,7 @@ func (db *sqlite3) GetColumns(queryer core.Queryer, ctx context.Context, tableNa
 }
 
 func (db *sqlite3) GetTables(queryer core.Queryer, ctx context.Context) ([]*schemas.Table, error) {
-	args := []interface{}{}
+	args := []any{}
 	s := "SELECT name FROM sqlite_master WHERE type='table'"
 
 	rows, err := queryer.QueryContext(ctx, s, args...)
@@ -466,7 +463,7 @@ func (db *sqlite3) GetTables(queryer core.Queryer, ctx context.Context) ([]*sche
 }
 
 func (db *sqlite3) GetIndexes(queryer core.Queryer, ctx context.Context, tableName string) (map[string]*schemas.Index, error) {
-	args := []interface{}{tableName}
+	args := []any{tableName}
 	s := "SELECT sql FROM sqlite_master WHERE type='index' and tbl_name = ?"
 
 	rows, err := queryer.QueryContext(ctx, s, args...)
@@ -543,14 +540,14 @@ func (p *sqlite3Driver) Features() *DriverFeatures {
 }
 
 func (p *sqlite3Driver) Parse(driverName, dataSourceName string) (*URI, error) {
-	if strings.Contains(dataSourceName, "?") {
-		dataSourceName = dataSourceName[:strings.Index(dataSourceName, "?")]
+	if base, _, ok := strings.Cut(dataSourceName, "?"); ok {
+		dataSourceName = base
 	}
 
 	return &URI{DBType: schemas.SQLITE, DBName: dataSourceName}, nil
 }
 
-func (p *sqlite3Driver) GenScanResult(colType string) (interface{}, error) {
+func (p *sqlite3Driver) GenScanResult(colType string) (any, error) {
 	switch colType {
 	case "TEXT":
 		var s sql.NullString

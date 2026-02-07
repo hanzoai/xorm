@@ -5,7 +5,6 @@
 package tests
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"testing"
@@ -41,7 +40,7 @@ func TestTimeUserTime(t *testing.T) {
 		OperTime: time.Now(),
 	}
 
-	fmt.Println("user", user.OperTime)
+	t.Log("user", user.OperTime)
 
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
@@ -53,7 +52,7 @@ func TestTimeUserTime(t *testing.T) {
 	assert.True(t, has)
 	assert.EqualValues(t, user.OperTime.Unix(), user2.OperTime.Unix())
 	assert.EqualValues(t, formatTime(user.OperTime), formatTime(user2.OperTime))
-	fmt.Println("user2", user2.OperTime)
+	t.Log("user2", user2.OperTime)
 }
 
 func TestTimeUserTimeDiffLoc(t *testing.T) {
@@ -86,7 +85,7 @@ func TestTimeUserTimeDiffLoc(t *testing.T) {
 		OperTime: time.Now(),
 	}
 
-	fmt.Println("user", user.OperTime)
+	t.Log("user", user.OperTime)
 
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
@@ -98,7 +97,7 @@ func TestTimeUserTimeDiffLoc(t *testing.T) {
 	assert.True(t, has)
 	assert.EqualValues(t, user.OperTime.Unix(), user2.OperTime.Unix())
 	assert.EqualValues(t, formatTime(user.OperTime.In(loc)), formatTime(user2.OperTime))
-	fmt.Println("user2", user2.OperTime)
+	t.Log("user2", user2.OperTime)
 }
 
 func TestTimeUserCreated(t *testing.T) {
@@ -115,7 +114,7 @@ func TestTimeUserCreated(t *testing.T) {
 		Id: "lunny",
 	}
 
-	fmt.Println("user", user.CreatedAt)
+	t.Log("user", user.CreatedAt)
 
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
@@ -127,7 +126,7 @@ func TestTimeUserCreated(t *testing.T) {
 	assert.True(t, has)
 	assert.EqualValues(t, user.CreatedAt.Unix(), user2.CreatedAt.Unix())
 	assert.EqualValues(t, formatTime(user.CreatedAt), formatTime(user2.CreatedAt))
-	fmt.Println("user2", user2.CreatedAt)
+	t.Log("user2", user2.CreatedAt)
 }
 
 func TestTimeUserCreatedDiffLoc(t *testing.T) {
@@ -159,7 +158,7 @@ func TestTimeUserCreatedDiffLoc(t *testing.T) {
 		Id: "lunny",
 	}
 
-	fmt.Println("user", user.CreatedAt)
+	t.Log("user", user.CreatedAt)
 
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
@@ -171,7 +170,7 @@ func TestTimeUserCreatedDiffLoc(t *testing.T) {
 	assert.True(t, has)
 	assert.EqualValues(t, user.CreatedAt.Unix(), user2.CreatedAt.Unix())
 	assert.EqualValues(t, formatTime(user.CreatedAt), formatTime(user2.CreatedAt))
-	fmt.Println("user2", user2.CreatedAt)
+	t.Log("user2", user2.CreatedAt)
 }
 
 func TestTimeUserUpdated(t *testing.T) {
@@ -189,7 +188,7 @@ func TestTimeUserUpdated(t *testing.T) {
 		Id: "lunny",
 	}
 
-	fmt.Println("user", user.CreatedAt, user.UpdatedAt)
+	t.Log("user", user.CreatedAt, user.UpdatedAt)
 
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
@@ -203,7 +202,7 @@ func TestTimeUserUpdated(t *testing.T) {
 	assert.EqualValues(t, formatTime(user.CreatedAt), formatTime(user2.CreatedAt))
 	assert.EqualValues(t, user.UpdatedAt.Unix(), user2.UpdatedAt.Unix())
 	assert.EqualValues(t, formatTime(user.UpdatedAt), formatTime(user2.UpdatedAt))
-	fmt.Println("user2", user2.CreatedAt, user2.UpdatedAt)
+	t.Log("user2", user2.CreatedAt, user2.UpdatedAt)
 
 	user3 := UserUpdated{
 		Id: "lunny2",
@@ -222,7 +221,7 @@ func TestTimeUserUpdated(t *testing.T) {
 	assert.EqualValues(t, formatTime(user.CreatedAt), formatTime(user4.CreatedAt))
 	assert.EqualValues(t, user3.UpdatedAt.Unix(), user4.UpdatedAt.Unix())
 	assert.EqualValues(t, formatTime(user3.UpdatedAt), formatTime(user4.UpdatedAt))
-	fmt.Println("user3", user.CreatedAt, user4.UpdatedAt)
+	t.Log("user3", user.CreatedAt, user4.UpdatedAt)
 }
 
 func TestTimeUserUpdatedDiffLoc(t *testing.T) {
@@ -255,7 +254,7 @@ func TestTimeUserUpdatedDiffLoc(t *testing.T) {
 		Id: "lunny",
 	}
 
-	fmt.Println("user", user.CreatedAt, user.UpdatedAt)
+	t.Log("user", user.CreatedAt, user.UpdatedAt)
 
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
@@ -269,7 +268,7 @@ func TestTimeUserUpdatedDiffLoc(t *testing.T) {
 	assert.EqualValues(t, formatTime(user.CreatedAt), formatTime(user2.CreatedAt))
 	assert.EqualValues(t, user.UpdatedAt.Unix(), user2.UpdatedAt.Unix())
 	assert.EqualValues(t, formatTime(user.UpdatedAt), formatTime(user2.UpdatedAt))
-	fmt.Println("user2", user2.CreatedAt, user2.UpdatedAt)
+	t.Log("user2", user2.CreatedAt, user2.UpdatedAt)
 
 	user3 := UserUpdated2{
 		Id: "lunny2",
@@ -288,7 +287,7 @@ func TestTimeUserUpdatedDiffLoc(t *testing.T) {
 	assert.EqualValues(t, formatTime(user.CreatedAt), formatTime(user4.CreatedAt))
 	assert.EqualValues(t, user3.UpdatedAt.Unix(), user4.UpdatedAt.Unix())
 	assert.EqualValues(t, formatTime(user3.UpdatedAt), formatTime(user4.UpdatedAt))
-	fmt.Println("user3", user.CreatedAt, user4.UpdatedAt)
+	t.Log("user3", user.CreatedAt, user4.UpdatedAt)
 }
 
 func TestTimeUserDeleted(t *testing.T) {
@@ -312,7 +311,7 @@ func TestTimeUserDeleted(t *testing.T) {
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, cnt)
-	fmt.Println("user", user.CreatedAt, user.UpdatedAt, user.DeletedAt)
+	t.Log("user", user.CreatedAt, user.UpdatedAt, user.DeletedAt)
 
 	var user2 UserDeleted
 	has, err := testEngine.Get(&user2)
@@ -323,8 +322,8 @@ func TestTimeUserDeleted(t *testing.T) {
 	assert.EqualValues(t, user.UpdatedAt.Unix(), user2.UpdatedAt.Unix())
 	assert.EqualValues(t, formatTime(user.UpdatedAt), formatTime(user2.UpdatedAt))
 	assert.True(t, utils.IsTimeZero(user2.DeletedAt))
-	fmt.Println("user2", user2.CreatedAt, user2.UpdatedAt, user2.DeletedAt)
-	fmt.Println("user2 str", user2.CreatedAtStr, user2.UpdatedAtStr)
+	t.Log("user2", user2.CreatedAt, user2.UpdatedAt, user2.DeletedAt)
+	t.Log("user2 str", user2.CreatedAtStr, user2.UpdatedAtStr)
 
 	var user3 UserDeleted
 	cnt, err = testEngine.Where("`id` = ?", "lunny").Delete(&user3)
@@ -338,7 +337,7 @@ func TestTimeUserDeleted(t *testing.T) {
 	assert.True(t, has)
 	assert.EqualValues(t, user3.DeletedAt.Unix(), user4.DeletedAt.Unix())
 	assert.EqualValues(t, formatTime(user3.DeletedAt), formatTime(user4.DeletedAt))
-	fmt.Println("user3", user3.DeletedAt, user4.DeletedAt)
+	t.Log("user3", user3.DeletedAt, user4.DeletedAt)
 }
 
 func TestTimeUserDeletedDiffLoc(t *testing.T) {
@@ -375,7 +374,7 @@ func TestTimeUserDeletedDiffLoc(t *testing.T) {
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, cnt)
-	fmt.Println("user", user.CreatedAt, user.UpdatedAt, user.DeletedAt)
+	t.Log("user", user.CreatedAt, user.UpdatedAt, user.DeletedAt)
 
 	var user2 UserDeleted2
 	has, err := testEngine.Get(&user2)
@@ -386,7 +385,7 @@ func TestTimeUserDeletedDiffLoc(t *testing.T) {
 	assert.EqualValues(t, user.UpdatedAt.Unix(), user2.UpdatedAt.Unix())
 	assert.EqualValues(t, formatTime(user.UpdatedAt), formatTime(user2.UpdatedAt))
 	assert.True(t, utils.IsTimeZero(user2.DeletedAt))
-	fmt.Println("user2", user2.CreatedAt, user2.UpdatedAt, user2.DeletedAt)
+	t.Log("user2", user2.CreatedAt, user2.UpdatedAt, user2.DeletedAt)
 
 	var user3 UserDeleted2
 	cnt, err = testEngine.Where("`id` = ?", "lunny").Delete(&user3)
@@ -400,7 +399,7 @@ func TestTimeUserDeletedDiffLoc(t *testing.T) {
 	assert.True(t, has)
 	assert.EqualValues(t, user3.DeletedAt.Unix(), user4.DeletedAt.Unix())
 	assert.EqualValues(t, formatTime(user3.DeletedAt), formatTime(user4.DeletedAt))
-	fmt.Println("user3", user3.DeletedAt, user4.DeletedAt)
+	t.Log("user3", user3.DeletedAt, user4.DeletedAt)
 }
 
 type JSONDate time.Time
@@ -446,7 +445,7 @@ func TestCustomTimeUserDeleted(t *testing.T) {
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, cnt)
-	fmt.Println("user", user.CreatedAt, user.UpdatedAt, user.DeletedAt)
+	t.Log("user", user.CreatedAt, user.UpdatedAt, user.DeletedAt)
 
 	var user2 UserDeleted3
 	has, err := testEngine.Get(&user2)
@@ -457,7 +456,7 @@ func TestCustomTimeUserDeleted(t *testing.T) {
 	assert.EqualValues(t, user.UpdatedAt.Unix(), user2.UpdatedAt.Unix())
 	assert.EqualValues(t, formatTime(time.Time(user.UpdatedAt)), formatTime(time.Time(user2.UpdatedAt)))
 	assert.True(t, utils.IsTimeZero(time.Time(user2.DeletedAt)))
-	fmt.Println("user2", user2.CreatedAt, user2.UpdatedAt, user2.DeletedAt)
+	t.Log("user2", user2.CreatedAt, user2.UpdatedAt, user2.DeletedAt)
 
 	var user3 UserDeleted3
 	cnt, err = testEngine.Where("`id` = ?", "lunny").Delete(&user3)
@@ -471,7 +470,7 @@ func TestCustomTimeUserDeleted(t *testing.T) {
 	assert.True(t, has)
 	assert.EqualValues(t, user3.DeletedAt.Unix(), user4.DeletedAt.Unix())
 	assert.EqualValues(t, formatTime(time.Time(user3.DeletedAt)), formatTime(time.Time(user4.DeletedAt)))
-	fmt.Println("user3", user3.DeletedAt, user4.DeletedAt)
+	t.Log("user3", user3.DeletedAt, user4.DeletedAt)
 }
 
 func TestCustomTimeUserDeletedDiffLoc(t *testing.T) {
@@ -508,7 +507,7 @@ func TestCustomTimeUserDeletedDiffLoc(t *testing.T) {
 	cnt, err := testEngine.Insert(&user)
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, cnt)
-	fmt.Println("user", user.CreatedAt, user.UpdatedAt, user.DeletedAt)
+	t.Log("user", user.CreatedAt, user.UpdatedAt, user.DeletedAt)
 
 	var user2 UserDeleted4
 	has, err := testEngine.Get(&user2)
@@ -519,7 +518,7 @@ func TestCustomTimeUserDeletedDiffLoc(t *testing.T) {
 	assert.EqualValues(t, user.UpdatedAt.Unix(), user2.UpdatedAt.Unix())
 	assert.EqualValues(t, formatTime(time.Time(user.UpdatedAt)), formatTime(time.Time(user2.UpdatedAt)))
 	assert.True(t, utils.IsTimeZero(time.Time(user2.DeletedAt)))
-	fmt.Println("user2", user2.CreatedAt, user2.UpdatedAt, user2.DeletedAt)
+	t.Log("user2", user2.CreatedAt, user2.UpdatedAt, user2.DeletedAt)
 
 	var user3 UserDeleted4
 	cnt, err = testEngine.Where("`id` = ?", "lunny").Delete(&user3)
@@ -533,7 +532,7 @@ func TestCustomTimeUserDeletedDiffLoc(t *testing.T) {
 	assert.True(t, has)
 	assert.EqualValues(t, user3.DeletedAt.Unix(), user4.DeletedAt.Unix())
 	assert.EqualValues(t, formatTime(time.Time(user3.DeletedAt)), formatTime(time.Time(user4.DeletedAt)))
-	fmt.Println("user3", user3.DeletedAt, user4.DeletedAt)
+	t.Log("user3", user3.DeletedAt, user4.DeletedAt)
 }
 
 func TestDeletedInt64(t *testing.T) {

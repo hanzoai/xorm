@@ -35,7 +35,7 @@ func (CustomStruct) String() string {
 	return "CustomStruct"
 }
 
-func (m *CustomStruct) Scan(value interface{}) error {
+func (m *CustomStruct) Scan(value any) error {
 	if value == nil {
 		m.Year, m.Month, m.Day = 0, 0, 0
 		return nil
@@ -98,7 +98,7 @@ func TestNullStructInsert(t *testing.T) {
 	items := []NullStruct{}
 	for i := 0; i < 5; i++ {
 		item := NullStruct{
-			Name:         sql.NullString{String: "haolei_" + fmt.Sprint(i+1), Valid: true},
+			Name:         sql.NullString{String: "haolei_" + strconv.Itoa(i+1), Valid: true},
 			Age:          sql.NullInt64{Int64: 30 + int64(i), Valid: true},
 			Height:       sql.NullFloat64{Float64: 1.5 + 1.1*float64(i), Valid: true},
 			IsMan:        sql.NullBool{Bool: true, Valid: true},
@@ -261,9 +261,9 @@ func TestNullStructIterate(t *testing.T) {
 
 	if true {
 		err := testEngine.Where("`age` IS NOT NULL").OrderBy("age").Iterate(new(NullStruct),
-			func(i int, bean interface{}) error {
+			func(i int, bean any) error {
 				nultype := bean.(*NullStruct)
-				fmt.Println(i, nultype)
+				t.Log(i, nultype)
 				return nil
 			})
 		assert.NoError(t, err)

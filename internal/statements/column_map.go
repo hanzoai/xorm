@@ -46,7 +46,7 @@ func (m *columnMap) Add(colName string) bool {
 	return true
 }
 
-func getFlagForColumn(m map[string]bool, col *schemas.Column) (val bool, has bool) {
+func getFlagForColumn(m map[string]bool, col *schemas.Column) (val, has bool) {
 	if len(m) == 0 {
 		return false, false
 	}

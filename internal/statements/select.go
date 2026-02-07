@@ -20,8 +20,8 @@ func (statement *Statement) Select(str string) *Statement {
 func col2NewCols(columns ...string) []string {
 	newColumns := make([]string, 0, len(columns))
 	for _, col := range columns {
-		col = strings.Replace(col, "`", "", -1)
-		col = strings.Replace(col, `"`, "", -1)
+		col = strings.ReplaceAll(col, "`", "")
+		col = strings.ReplaceAll(col, `"`, "")
 		ccols := strings.Split(col, ",")
 		for _, c := range ccols {
 			newColumns = append(newColumns, strings.TrimSpace(c))
@@ -112,7 +112,7 @@ func (statement *Statement) genColumnStr() string {
 			buf.WriteString(".")
 		}
 
-		statement.dialect.Quoter().QuoteTo(&buf, col.Name)
+		buf.WriteString(statement.dialect.Quoter().Quote(col.Name))
 	}
 
 	return buf.String()

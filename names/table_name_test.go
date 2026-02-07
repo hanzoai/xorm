@@ -51,7 +51,7 @@ func (t *TestTableNameStruct) TableName() string {
 }
 
 func TestGetTableName(t *testing.T) {
-	var kases = []struct {
+	kases := []struct {
 		mapper            Mapper
 		v                 reflect.Value
 		expectedTableName string
@@ -108,8 +108,7 @@ func TestGetTableName(t *testing.T) {
 	}
 }
 
-type OAuth2Application struct {
-}
+type OAuth2Application struct{}
 
 // TableName sets the table name to `oauth2_application`
 func (app *OAuth2Application) TableName() string {

@@ -30,8 +30,8 @@ func (statement *Statement) groupWriteFns(writeFuncs ...func(*builder.BytesWrite
 func (statement *Statement) writeMultiple(buf *builder.BytesWriter, writeFuncs ...func(*builder.BytesWriter) error) (err error) {
 	for _, fn := range writeFuncs {
 		if err = fn(buf); err != nil {
-			return
+			return err
 		}
 	}
-	return
+	return nil
 }

@@ -24,7 +24,7 @@ var (
 )
 
 // Value2Interface convert a field value of a struct to interface for putting into database
-func (statement *Statement) Value2Interface(col *schemas.Column, fieldValue reflect.Value) (interface{}, error) {
+func (statement *Statement) Value2Interface(col *schemas.Column, fieldValue reflect.Value) (any, error) {
 	if fieldValue.CanAddr() {
 		if fieldConvert, ok := fieldValue.Addr().Interface().(convert.Conversion); ok {
 			data, err := fieldConvert.ToDB()
@@ -69,14 +69,14 @@ func (statement *Statement) Value2Interface(col *schemas.Column, fieldValue refl
 	if k == reflect.Ptr {
 		if fieldValue.IsNil() {
 			return nil, nil
-		} else if !fieldValue.IsValid() {
-			return nil, nil
-		} else {
-			// !nashtsai! deference pointer type to instance type
-			fieldValue = fieldValue.Elem()
-			fieldType = fieldValue.Type()
-			k = fieldType.Kind()
 		}
+		if !fieldValue.IsValid() {
+			return nil, nil
+		}
+		// !nashtsai! deference pointer type to instance type
+		fieldValue = fieldValue.Elem()
+		fieldType = fieldValue.Type()
+		k = fieldType.Kind()
 	}
 
 	switch k {
@@ -99,9 +99,8 @@ func (statement *Statement) Value2Interface(col *schemas.Column, fieldValue refl
 					layout = "yyyy-MM-dd HH24:mi:ss"
 				}
 				return &DateTimeString{Layout: layout, Str: val}, err
-			} else {
-				return tf, err
 			}
+			return tf, err
 		} else if fieldType.ConvertibleTo(nullFloatType) {
 			t := fieldValue.Convert(nullFloatType).Interface().(sql.NullFloat64)
 			if !t.Valid {

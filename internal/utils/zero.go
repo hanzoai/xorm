@@ -17,7 +17,7 @@ type Zeroable interface {
 var nilTime *time.Time
 
 // IsZero returns false if k is nil or has a zero value
-func IsZero(k interface{}) bool {
+func IsZero(k any) bool {
 	if k == nil {
 		return true
 	}
@@ -55,10 +55,11 @@ func IsZero(k interface{}) bool {
 		return t == nilTime || IsTimeZero(*t)
 	case time.Time:
 		return IsTimeZero(t)
-	case Zeroable:
-		return k.(Zeroable) == nil || k.(Zeroable).IsZero()
 	case reflect.Value: // for go version less than 1.13 because reflect.Value has no method IsZero
 		return IsValueZero(k.(reflect.Value))
+	case Zeroable:
+		zeroable := k.(Zeroable)
+		return zeroable == nil || zeroable.IsZero()
 	}
 
 	return IsValueZero(reflect.ValueOf(k))

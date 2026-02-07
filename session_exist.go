@@ -5,7 +5,7 @@
 package xorm
 
 // Exist returns true if the record exist otherwise return false
-func (session *Session) Exist(bean ...interface{}) (bool, error) {
+func (session *Session) Exist(bean ...any) (bool, error) {
 	if session.isAutoClose {
 		defer session.Close()
 	}

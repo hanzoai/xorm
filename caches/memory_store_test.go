@@ -12,7 +12,7 @@ import (
 
 func TestMemoryStore(t *testing.T) {
 	store := NewMemoryStore()
-	var kvs = map[string]interface{}{
+	kvs := map[string]any{
 		"a": "b",
 	}
 	for k, v := range kvs {

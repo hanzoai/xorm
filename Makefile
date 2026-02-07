@@ -6,11 +6,12 @@ GOFMT ?= gofmt -s
 TAGS ?=
 SED_INPLACE := sed -i
 
-GO_DIRS := caches contexts integrations core dialects internal log migrate names schemas tags
+GO_DIRS := caches contexts convert core dialects internal log migrate names schemas tags tests
 GOFILES := $(wildcard *.go)
 GOFILES += $(shell find $(GO_DIRS) -name "*.go" -type f)
 INTEGRATION_PACKAGES := xorm.io/xorm/tests
 PACKAGES ?= $(filter-out $(INTEGRATION_PACKAGES),$(shell $(GO) list ./...))
+GOLANGCI_LINT_PACKAGE ?= github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0
 
 TEST_COCKROACH_HOST ?= cockroach:26257
 TEST_COCKROACH_SCHEMA ?=
@@ -72,7 +73,7 @@ coverage:
 
 .PHONY: fmt
 fmt:
-	$(GOFMT) -w $(GOFILES)
+	$(GO) fmt ./...
 
 .PHONY: fmt-check
 fmt-check:
@@ -111,25 +112,8 @@ help:
 	@echo " - vet               examines Go source code and reports suspicious constructs"
 
 .PHONY: lint
-lint: golangci-lint
-
-.PHONY: golangci-lint
-golangci-lint: golangci-lint-check
-	golangci-lint run --timeout 10m
-
-.PHONY: golangci-lint-check
-golangci-lint-check:
-	$(eval GOLANGCI_LINT_VERSION := $(shell printf "%03d%03d%03d" $(shell golangci-lint --version | grep -Eo '[0-9]+\.[0-9.]+' | tr '.' ' ');))
-	$(eval MIN_GOLANGCI_LINT_VER_FMT := $(shell printf "%g.%g.%g" $(shell echo $(MIN_GOLANGCI_LINT_VERSION) | grep -o ...)))
-	@hash golangci-lint > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
-		echo "Downloading golangci-lint v${MIN_GOLANGCI_LINT_VER_FMT}"; \
-		export BINARY="golangci-lint"; \
-		curl -sfL "https://raw.githubusercontent.com/golangci/golangci-lint/v${MIN_GOLANGCI_LINT_VER_FMT}/install.sh" | sh -s -- -b $(GOPATH)/bin v$(MIN_GOLANGCI_LINT_VER_FMT); \
-	elif [ "$(GOLANGCI_LINT_VERSION)" -lt "$(MIN_GOLANGCI_LINT_VERSION)" ]; then \
-		echo "Downloading newer version of golangci-lint v${MIN_GOLANGCI_LINT_VER_FMT}"; \
-		export BINARY="golangci-lint"; \
-		curl -sfL "https://raw.githubusercontent.com/golangci/golangci-lint/v${MIN_GOLANGCI_LINT_VER_FMT}/install.sh" | sh -s -- -b $(GOPATH)/bin v$(MIN_GOLANGCI_LINT_VER_FMT); \
-	fi
+lint:
+	$(GO) run $(GOLANGCI_LINT_PACKAGE) run
 
 .PHONY: test
 test: go-check

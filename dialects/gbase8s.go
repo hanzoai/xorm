@@ -596,7 +596,7 @@ func (db *gbase8s) SQLType(c *schemas.Column) string {
 		res = "NUMERIC(1,0)"
 	case schemas.Char, schemas.NChar, schemas.Uuid:
 		res = "CHAR"
-	case schemas.Varchar, schemas.NVarchar, schemas.VARCHAR2, schemas.NVarchar:
+	case schemas.Varchar, schemas.NVarchar, schemas.VARCHAR2:
 		res = "VARCHAR"
 	case schemas.Enum, schemas.Set:
 		res = "VARCHAR(255)"
@@ -615,9 +615,8 @@ func (db *gbase8s) SQLType(c *schemas.Column) string {
 	case schemas.DateTime, schemas.SmallDateTime, schemas.TimeStamp, schemas.TimeStampz, schemas.Time:
 		if c.Length >= 1 && c.Length <= 5 {
 			return fmt.Sprintf("DATETIME YEAR TO FRACTION(%d)", c.Length)
-		} else {
-			return "DATETIME YEAR TO  FRACTION(5)"
 		}
+		return "DATETIME YEAR TO  FRACTION(5)"
 	default:
 		res = t
 	}
@@ -745,8 +744,8 @@ func (db *gbase8s) GetIndexes(queryer core.Queryer, ctx context.Context, tableNa
 	return indexes, nil
 }
 
-func (db *gbase8s) IndexCheckSQL(tableName, idxName string) (string, []interface{}) {
-	args := []interface{}{tableName, idxName}
+func (db *gbase8s) IndexCheckSQL(tableName, idxName string) (string, []any) {
+	args := []any{tableName, idxName}
 	sql := `SELECT idx.idxname FROM sysindexes idx
 			JOIN systables tab ON idx.tabid = tab.tabid
 			JOIN syscolumns col ON col.tabid = tab.tabid
@@ -765,7 +764,7 @@ func (db *gbase8s) DropIndexSQL(tableName string, index *schemas.Index) string {
 	} else {
 		name = index.Name
 	}
-	return fmt.Sprintf("DROP INDEX %s", db.quoter.Quote(name))
+	return "DROP INDEX " + db.quoter.Quote(name)
 }
 
 func (db *gbase8s) GetTables(queryer core.Queryer, ctx context.Context) ([]*schemas.Table, error) {
@@ -808,7 +807,7 @@ func (db *gbase8s) CreateTableSQL(ctx context.Context, queryer core.Queryer, tab
 		s, _ := ColumnString(db, col, false, false)
 		sql += s
 		if len(col.Comment) > 0 {
-			sql += fmt.Sprintf(" COMMENT '%s'", col.Comment)
+			sql += " COMMENT '" + col.Comment + "'"
 		}
 		sql = strings.TrimSpace(sql)
 		sql += ", "
@@ -823,7 +822,7 @@ func (db *gbase8s) CreateTableSQL(ctx context.Context, queryer core.Queryer, tab
 }
 
 func (db *gbase8s) DropTableSQL(tableName string) (string, bool) {
-	return fmt.Sprintf("DROP TABLE %s", db.quoter.Quote(tableName)), false
+	return "DROP TABLE " + db.quoter.Quote(tableName), false
 }
 
 func (db *gbase8s) GetColumns(queryer core.Queryer, ctx context.Context, tableName string) ([]string, map[string]*schemas.Column, error) {
@@ -959,7 +958,7 @@ func (db *gbase8s) ModifyColumnSQL(tableName string, col *schemas.Column) string
 }
 
 func (db *gbase8s) IsColumnExist(queryer core.Queryer, ctx context.Context, tableName, colName string) (bool, error) {
-	args := []interface{}{tableName, colName}
+	args := []any{tableName, colName}
 	query := "SELECT colname FROM syscolumnsext c, systables t WHERE c.tabid = t.tabid and tabname = :1 AND colname = :2"
 	return db.HasRecords(queryer, ctx, query, args...)
 }
@@ -978,7 +977,7 @@ func (g *gbase8sDriver) Features() *DriverFeatures {
 	}
 }
 
-func (g *gbase8sDriver) GenScanResult(colType string) (interface{}, error) {
+func (g *gbase8sDriver) GenScanResult(colType string) (any, error) {
 	colType = strings.Replace(colType, "SQLT_", "", 1)
 	switch colType {
 	case "CHAR", "NCHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "AFC":
@@ -1024,7 +1023,7 @@ func (g *gbase8sDriver) GenScanResult(colType string) (interface{}, error) {
 
 // dataSourceName=user/password@ipv4:port/dbname
 // gbase8s://user:password@ip:port/dbname?param2=1&param2=2
-func (o *gbase8sDriver) Parse(driverName, dataSourceName string) (*URI, error) {
+func (g *gbase8sDriver) Parse(driverName, dataSourceName string) (*URI, error) {
 	db := &URI{DBType: schemas.GBASE8S}
 	dsnPattern := regexp.MustCompile(
 		`^(?P<user>.*):(?P<password>.*)@` + // user:password@

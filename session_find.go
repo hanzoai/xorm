@@ -26,7 +26,7 @@ const (
 // Find retrieve records from table, condiBeans's non-empty fields
 // are conditions. beans could be []Struct, []*Struct, map[int64]Struct
 // map[int64]*Struct
-func (session *Session) Find(rowsSlicePtr interface{}, condiBean ...interface{}) error {
+func (session *Session) Find(rowsSlicePtr any, condiBean ...any) error {
 	if session.isAutoClose {
 		defer session.Close()
 	}
@@ -34,7 +34,7 @@ func (session *Session) Find(rowsSlicePtr interface{}, condiBean ...interface{})
 }
 
 // FindAndCount find the results and also return the counts
-func (session *Session) FindAndCount(rowsSlicePtr interface{}, condiBean ...interface{}) (int64, error) {
+func (session *Session) FindAndCount(rowsSlicePtr any, condiBean ...any) (int64, error) {
 	if session.isAutoClose {
 		defer session.Close()
 	}
@@ -78,7 +78,7 @@ func (session *Session) FindAndCount(rowsSlicePtr interface{}, condiBean ...inte
 	return session.Unscoped().Count()
 }
 
-func (session *Session) find(rowsSlicePtr interface{}, condiBean ...interface{}) error {
+func (session *Session) find(rowsSlicePtr any, condiBean ...any) error {
 	defer session.resetStatement()
 	if session.statement.LastError != nil {
 		return session.statement.LastError
@@ -221,7 +221,7 @@ func ParseColumnsSchema(fieldNames []string, types []*sql.ColumnType, table *sch
 	return &columnsSchema
 }
 
-func (session *Session) noCacheFind(table *schemas.Table, containerValue reflect.Value, sqlStr string, args ...interface{}) error {
+func (session *Session) noCacheFind(table *schemas.Table, containerValue reflect.Value, sqlStr string, args ...any) error {
 	elemType := containerValue.Type().Elem()
 	var isPointer bool
 	if elemType.Kind() == reflect.Ptr {
@@ -332,7 +332,7 @@ func (session *Session) noCacheFind(table *schemas.Table, containerValue reflect
 	return rows.Err()
 }
 
-func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr interface{}, args ...interface{}) (err error) {
+func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr any, args ...any) (err error) {
 	if !session.canCache() ||
 		utils.IndexNoCase(sqlStr, "having") != -1 ||
 		utils.IndexNoCase(sqlStr, "group by") != -1 {
@@ -376,7 +376,7 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr in
 			if err != nil {
 				return err
 			}
-			var pk schemas.PK = make([]interface{}, len(table.PrimaryKeys))
+			var pk schemas.PK = make([]any, len(table.PrimaryKeys))
 			for i, col := range table.PKColumns() {
 				pk[i], err = col.ConvertID(res[i])
 				if err != nil {
@@ -403,7 +403,7 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr in
 
 	ididxes := make(map[string]int)
 	var ides []schemas.PK
-	temps := make([]interface{}, len(ids))
+	temps := make([]any, len(ids))
 
 	for idx, id := range ids {
 		sid, err := id.ToString()
@@ -413,17 +413,15 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr in
 		bean := cacher.GetBean(tableName, sid)
 
 		// fix issue #894
-		isHit := func() (ht bool) {
+		isHit := func() bool {
 			if bean == nil {
-				ht = false
-				return
+				return false
 			}
 			ckb := reflect.ValueOf(bean).Elem().Type()
-			ht = ckb == t
-			if !ht && t.Kind() == reflect.Ptr {
-				ht = t.Elem() == ckb
+			if ckb == t {
+				return true
 			}
-			return
+			return t.Kind() == reflect.Ptr && t.Elem() == ckb
 		}
 		if !isHit() {
 			ides = append(ides, id)
@@ -460,7 +458,7 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr in
 			session.engine.DatabaseTZ,
 		)
 		if len(table.PrimaryKeys) == 1 {
-			ff := make([]interface{}, 0, len(ides))
+			ff := make([]any, 0, len(ides))
 			for _, ie := range ides {
 				ff = append(ff, ie[0])
 			}
@@ -521,7 +519,7 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr in
 			key := ids[j]
 			keyType := sliceValue.Type().Key()
 			keyValue := reflect.New(keyType)
-			var ikey interface{}
+			var ikey any
 			if len(key) == 1 {
 				if err := convert.AssignValue(keyValue, key[0]); err != nil {
 					return err

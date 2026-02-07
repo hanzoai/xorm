@@ -5,6 +5,7 @@
 package tests
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -47,22 +48,22 @@ func TestInsertMulti(t *testing.T) {
 	assert.EqualValues(t, 3, num)
 }
 
-func insertMultiDatas(step int, datas interface{}) (num int64, err error) {
+func insertMultiDatas(step int, datas any) (num int64, err error) {
 	sliceValue := reflect.Indirect(reflect.ValueOf(datas))
 	var iLen int64
 	if sliceValue.Kind() != reflect.Slice {
-		return 0, fmt.Errorf("not silce")
+		return 0, errors.New("not silce")
 	}
 	iLen = int64(sliceValue.Len())
 	if iLen == 0 {
-		return
+		return 0, nil
 	}
 
 	session := testEngine.NewSession()
 	defer session.Close()
 
 	if err = callbackLooper(datas, step,
-		func(innerDatas interface{}) error {
+		func(innerDatas any) error {
 			n, e := session.InsertMulti(innerDatas)
 			if e != nil {
 				return e
@@ -74,19 +75,19 @@ func insertMultiDatas(step int, datas interface{}) (num int64, err error) {
 	} else if num != iLen {
 		return 0, fmt.Errorf("num error: %d - %d", num, iLen)
 	}
-	return
+	return num, nil
 }
 
-func callbackLooper(datas interface{}, step int, actionFunc func(interface{}) error) (err error) {
+func callbackLooper(datas any, step int, actionFunc func(any) error) (err error) {
 	sliceValue := reflect.Indirect(reflect.ValueOf(datas))
 	if sliceValue.Kind() != reflect.Slice {
-		return fmt.Errorf("not slice")
+		return errors.New("not slice")
 	}
 	if sliceValue.Len() <= 0 {
-		return
+		return nil
 	}
 
-	tempLen := 0
+	var tempLen int
 	processedLen := sliceValue.Len()
 	for i := 0; i < sliceValue.Len(); i += step {
 		if processedLen > step {
@@ -94,16 +95,16 @@ func callbackLooper(datas interface{}, step int, actionFunc func(interface{}) er
 		} else {
 			tempLen = sliceValue.Len()
 		}
-		var tempInterface []interface{}
+		var tempInterface []any
 		for j := i; j < tempLen; j++ {
 			tempInterface = append(tempInterface, sliceValue.Index(j).Interface())
 		}
 		if err = actionFunc(tempInterface); err != nil {
-			return
+			return err
 		}
 		processedLen -= step
 	}
-	return
+	return nil
 }
 
 func TestInsertOneIfPkIsPoint(t *testing.T) {
@@ -482,7 +483,7 @@ func TestInsertMulti2Interface(t *testing.T) {
 
 	assertSync(t, new(Userinfo))
 
-	users := []interface{}{
+	users := []any{
 		Userinfo{Username: "xlw", Departname: "dev", Alias: "lunny2", Created: time.Now()},
 		Userinfo{Username: "xlw2", Departname: "dev", Alias: "lunny3", Created: time.Now()},
 		Userinfo{Username: "xlw11", Departname: "dev", Alias: "lunny2", Created: time.Now()},
@@ -496,7 +497,7 @@ func TestInsertMulti2Interface(t *testing.T) {
 	}
 	assert.EqualValues(t, len(users), cnt)
 
-	users2 := []interface{}{
+	users2 := []any{
 		&Userinfo{Username: "1xlw", Departname: "dev", Alias: "lunny2", Created: time.Now()},
 		&Userinfo{Username: "1xlw2", Departname: "dev", Alias: "lunny3", Created: time.Now()},
 		&Userinfo{Username: "1xlw11", Departname: "dev", Alias: "lunny2", Created: time.Now()},
@@ -683,7 +684,7 @@ func TestInsertMap(t *testing.T) {
 	assert.NoError(t, PrepareEngine())
 	assertSync(t, new(InsertMap))
 
-	cnt, err := testEngine.Table(new(InsertMap)).Insert(map[string]interface{}{
+	cnt, err := testEngine.Table(new(InsertMap)).Insert(map[string]any{
 		"width":  20,
 		"height": 10,
 		"name":   "lunny",
@@ -699,7 +700,7 @@ func TestInsertMap(t *testing.T) {
 	assert.EqualValues(t, 10, im.Height)
 	assert.EqualValues(t, "lunny", im.Name)
 
-	cnt, err = testEngine.Table("insert_map").Insert(map[string]interface{}{
+	cnt, err = testEngine.Table("insert_map").Insert(map[string]any{
 		"width":  30,
 		"height": 10,
 		"name":   "lunny",
@@ -718,7 +719,7 @@ func TestInsertMap(t *testing.T) {
 	assert.EqualValues(t, 10, ims[1].Height)
 	assert.EqualValues(t, "lunny", ims[1].Name)
 
-	cnt, err = testEngine.Table("insert_map").Insert([]map[string]interface{}{
+	cnt, err = testEngine.Table("insert_map").Insert([]map[string]any{
 		{
 			"width":  40,
 			"height": 10,
@@ -797,7 +798,7 @@ func TestInsertWhere(t *testing.T) {
 
 	inserted, err = testEngine.Table(new(InsertWhere)).Where("`repo_id`=?", 1).
 		SetExpr("`index`", "coalesce(MAX(`index`),0)+1").
-		Insert(map[string]interface{}{
+		Insert(map[string]any{
 			"repo_id": 1,
 			"width":   20,
 			"height":  40,
@@ -834,7 +835,7 @@ func TestInsertWhere(t *testing.T) {
 
 	inserted, err = testEngine.Table(new(InsertWhere)).Where("`repo_id`=?", 1).
 		SetExpr("`index`", "coalesce(MAX(`index`),0)+1").
-		Insert(map[string]interface{}{
+		Insert(map[string]any{
 			"repo_id": 1,
 			"name":    "10';delete * from insert_where; --",
 		})
@@ -850,7 +851,7 @@ func TestInsertWhere(t *testing.T) {
 
 	inserted, err = testEngine.Table(new(InsertWhere)).Where("`repo_id`=?", 1).
 		SetExpr("`index`", "coalesce(MAX(`index`),0)+1").
-		Insert(map[string]interface{}{
+		Insert(map[string]any{
 			"repo_id": 1,
 			"name":    "10\\';delete * from insert_where; --",
 		})
@@ -910,7 +911,7 @@ func TestInsertExpr2(t *testing.T) {
 		SetExpr("is_draft", true).
 		SetExpr("num_commits", 0).
 		SetExpr("sha1", "").
-		Insert(map[string]interface{}{
+		Insert(map[string]any{
 			"repo_id": 1,
 			"is_tag":  true,
 		})
@@ -947,7 +948,7 @@ func TestMultipleInsertTableName(t *testing.T) {
 	err := trans.Begin()
 	assert.NoError(t, err)
 
-	rtArr := []interface{}{
+	rtArr := []any{
 		[]*NightlyRate{
 			{ID: 1},
 			{ID: 2},
@@ -978,7 +979,7 @@ func TestInsertMultiWithOmit(t *testing.T) {
 
 	assert.NoError(t, testEngine.Sync(new(TestMultiOmit)))
 
-	l := []interface{}{
+	l := []any{
 		TestMultiOmit{Id: 1, Name: "1", Omitted: "1"},
 		TestMultiOmit{Id: 2, Name: "1", Omitted: "2"},
 		TestMultiOmit{Id: 3, Name: "1", Omitted: "3"},
@@ -1142,7 +1143,7 @@ func TestInsertMultipleMap(t *testing.T) {
 	assert.NoError(t, PrepareEngine())
 	assertSync(t, new(InsertMultipleMap))
 
-	cnt, err := testEngine.Table(new(InsertMultipleMap)).Insert([]map[string]interface{}{
+	cnt, err := testEngine.Table(new(InsertMultipleMap)).Insert([]map[string]any{
 		{
 			"width":  20,
 			"height": 10,
@@ -1298,7 +1299,6 @@ func TestInsertNotDeletedTimeStamp(t *testing.T) {
 	if testEngine.Dialect().URI().DBType == schemas.MSSQL ||
 		testEngine.Dialect().URI().DBType == schemas.SQLITE ||
 		testEngine.Dialect().URI().DBType == schemas.POSTGRES {
-
 		type TestInsertNotDeletedTimeStampStructNotRight struct {
 			ID        uint64    `xorm:"'ID' pk autoincr"`
 			DeletedAt time.Time `xorm:"'DELETED_AT' deleted notnull TIMESTAMP"`

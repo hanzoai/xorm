@@ -7,7 +7,6 @@ package tags
 import (
 	"encoding/gob"
 	"errors"
-	"fmt"
 	"reflect"
 	"strings"
 	"sync"
@@ -151,7 +150,7 @@ func (parser *Parser) getSQLTypeByType(t reflect.Type) (schemas.SQLType, error) 
 				return pkCols[0].SQLType, nil
 			}
 			if len(pkCols) > 1 {
-				return schemas.SQLType{}, fmt.Errorf("unsupported mulitiple primary key on cascade")
+				return schemas.SQLType{}, errors.New("unsupported mulitiple primary key on cascade")
 			}
 		}
 	}
@@ -160,12 +159,11 @@ func (parser *Parser) getSQLTypeByType(t reflect.Type) (schemas.SQLType, error) 
 
 func (parser *Parser) parseFieldWithNoTag(fieldIndex int, field reflect.StructField, fieldValue reflect.Value) (*schemas.Column, error) {
 	var sqlType schemas.SQLType
+	hasAddrConversion := false
 	if fieldValue.CanAddr() {
-		if _, ok := fieldValue.Addr().Interface().(convert.Conversion); ok {
-			sqlType = schemas.SQLType{Name: schemas.Text}
-		}
+		_, hasAddrConversion = fieldValue.Addr().Interface().(convert.Conversion)
 	}
-	if _, ok := fieldValue.Interface().(convert.Conversion); ok {
+	if _, ok := fieldValue.Interface().(convert.Conversion); ok || hasAddrConversion {
 		sqlType = schemas.SQLType{Name: schemas.Text}
 	} else {
 		var err error
@@ -179,7 +177,8 @@ func (parser *Parser) parseFieldWithNoTag(fieldIndex int, field reflect.StructFi
 		sqlType.DefaultLength2, true)
 	col.FieldIndex = []int{fieldIndex}
 
-	if field.Type.Kind() == reflect.Int64 && (strings.ToUpper(col.FieldName) == "ID" || strings.HasSuffix(strings.ToUpper(col.FieldName), ".ID")) {
+	fieldNameUpper := strings.ToUpper(col.FieldName)
+	if field.Type.Kind() == reflect.Int64 && (strings.EqualFold(col.FieldName, "ID") || strings.HasSuffix(fieldNameUpper, ".ID")) {
 		col.IsAutoIncrement = true
 		col.IsPrimaryKey = true
 		col.Nullable = false

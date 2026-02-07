@@ -654,7 +654,7 @@ func (db *dameng) IsReserved(name string) bool {
 }
 
 func (db *dameng) DropTableSQL(tableName string) (string, bool) {
-	return fmt.Sprintf("DROP TABLE %s", db.quoter.Quote(tableName)), false
+	return "DROP TABLE " + db.quoter.Quote(tableName), false
 }
 
 // ModifyColumnSQL returns a SQL to modify SQL
@@ -685,9 +685,10 @@ func (db *dameng) CreateTableSQL(ctx context.Context, queryer core.Queryer, tabl
 	for i, colName := range table.ColumnsSeq() {
 		col := table.GetColumn(colName)
 		if col.SQLType.IsBool() && !col.DefaultIsEmpty {
-			if col.Default == "true" {
+			switch col.Default {
+			case "true":
 				col.Default = "1"
-			} else if col.Default == "false" {
+			case "false":
 				col.Default = "0"
 			}
 		}
@@ -749,8 +750,8 @@ func (db *dameng) SetQuotePolicy(quotePolicy QuotePolicy) {
 	}
 }
 
-func (db *dameng) IndexCheckSQL(tableName, idxName string) (string, []interface{}) {
-	args := []interface{}{tableName, idxName}
+func (db *dameng) IndexCheckSQL(tableName, idxName string) (string, []any) {
+	args := []any{tableName, idxName}
 	return `SELECT INDEX_NAME FROM USER_INDEXES ` +
 		`WHERE TABLE_NAME = ? AND INDEX_NAME = ?`, args
 }
@@ -780,7 +781,7 @@ func (db *dameng) IsSequenceExist(ctx context.Context, queryer core.Queryer, seq
 }
 
 func (db *dameng) IsColumnExist(queryer core.Queryer, ctx context.Context, tableName, colName string) (bool, error) {
-	args := []interface{}{tableName, colName}
+	args := []any{tableName, colName}
 	query := "SELECT column_name FROM USER_TAB_COLUMNS WHERE table_name = ?" +
 		" AND column_name = ?"
 	return db.HasRecords(queryer, ctx, query, args...)
@@ -800,7 +801,7 @@ type dmClobObject interface {
 
 // var _ dmClobObject = &dm.DmClob{}
 
-func (d *dmClobScanner) Scan(data interface{}) error {
+func (d *dmClobScanner) Scan(data any) error {
 	if data == nil {
 		return nil
 	}
@@ -832,10 +833,10 @@ func (d *dmClobScanner) Scan(data interface{}) error {
 		d.valid = true
 		return nil
 	case string:
-		if len(t) <= 0 {
+		if len(t) == 0 {
 			return nil
 		}
-		d.data = string(t)
+		d.data = t
 		d.valid = true
 		return nil
 	default:
@@ -1011,7 +1012,7 @@ func (db *dameng) GetColumns(queryer core.Queryer, ctx context.Context, tableNam
 
 func (db *dameng) GetTables(queryer core.Queryer, ctx context.Context) ([]*schemas.Table, error) {
 	s := "SELECT table_name FROM user_tables WHERE temporary = 'N' AND table_name NOT LIKE ?"
-	args := []interface{}{strings.ToUpper(db.uri.User), "%$%"}
+	args := []any{strings.ToUpper(db.uri.User), "%$%"}
 
 	rows, err := queryer.QueryContext(ctx, s, args...)
 	if err != nil {
@@ -1036,7 +1037,7 @@ func (db *dameng) GetTables(queryer core.Queryer, ctx context.Context) ([]*schem
 }
 
 func (db *dameng) GetIndexes(queryer core.Queryer, ctx context.Context, tableName string) (map[string]*schemas.Index, error) {
-	args := []interface{}{tableName, tableName}
+	args := []any{tableName, tableName}
 	s := "SELECT t.column_name,i.uniqueness,i.index_name FROM user_ind_columns t,user_indexes i " +
 		"WHERE t.index_name = i.index_name and t.table_name = i.table_name and t.table_name =?" +
 		" AND t.index_name not in (SELECT index_name FROM ALL_CONSTRAINTS WHERE CONSTRAINT_TYPE='P' AND table_name = ?)"
@@ -1092,9 +1093,7 @@ func (db *dameng) Filters() []Filter {
 	return []Filter{}
 }
 
-type damengDriver struct {
-	baseDriver
-}
+type damengDriver struct{}
 
 // Features return features
 func (d *damengDriver) Features() *DriverFeatures {
@@ -1127,7 +1126,7 @@ func (d *damengDriver) Parse(driverName, dataSourceName string) (*URI, error) {
 	}, nil
 }
 
-func (d *damengDriver) GenScanResult(colType string) (interface{}, error) {
+func (d *damengDriver) GenScanResult(colType string) (any, error) {
 	switch colType {
 	case "CHAR", "NCHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "LONG", "CLOB", "NCLOB":
 		var s sql.NullString
@@ -1156,13 +1155,13 @@ func (d *damengDriver) GenScanResult(colType string) (interface{}, error) {
 	}
 }
 
-func (d *damengDriver) Scan(ctx *ScanContext, rows *core.Rows, types []*sql.ColumnType, vv ...interface{}) error {
-	scanResults := make([]interface{}, 0, len(types))
+func (d *damengDriver) Scan(ctx *ScanContext, rows *core.Rows, types []*sql.ColumnType, vv ...any) error {
+	scanResults := make([]any, 0, len(types))
 	replaces := make([]bool, 0, len(types))
 	var err error
 	for i, v := range vv {
 		var replaced bool
-		var scanResult interface{}
+		var scanResult any
 		switch types[i].DatabaseTypeName() {
 		case "CLOB", "TEXT":
 			scanResult = &dmClobScanner{}
@@ -1186,7 +1185,7 @@ func (d *damengDriver) Scan(ctx *ScanContext, rows *core.Rows, types []*sql.Colu
 		if replaced {
 			switch t := scanResults[i].(type) {
 			case *dmClobScanner:
-				var d interface{}
+				var d any
 				if t.valid {
 					d = t.data
 				} else {
@@ -1204,7 +1203,7 @@ func (d *damengDriver) Scan(ctx *ScanContext, rows *core.Rows, types []*sql.Colu
 					}
 					s := ns.String
 					fields := strings.Split(s, "+")
-					if err := convert.Assign(vv[i], strings.Replace(fields[0], "T", " ", -1), ctx.DBLocation, ctx.UserLocation); err != nil {
+					if err := convert.Assign(vv[i], strings.ReplaceAll(fields[0], "T", " "), ctx.DBLocation, ctx.UserLocation); err != nil {
 						return err
 					}
 				default:

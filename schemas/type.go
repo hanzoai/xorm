@@ -324,7 +324,7 @@ func Type2SQLType(t reflect.Type) (st SQLType) {
 	default:
 		st = SQLType{Text, 0, 0}
 	}
-	return
+	return st
 }
 
 // SQLType2Type convert default sql type change to go types

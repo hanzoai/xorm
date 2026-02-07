@@ -3,7 +3,6 @@
 // license that can be found in the LICENSE file.
 
 //go:build dm
-// +build dm
 
 package tests
 

@@ -11,7 +11,7 @@ import (
 )
 
 // AsBool convert interface as bool
-func AsBool(src interface{}) (bool, error) {
+func AsBool(src any) (bool, error) {
 	switch v := src.(type) {
 	case bool:
 		return v, nil
@@ -33,12 +33,14 @@ func AsBool(src interface{}) (bool, error) {
 		if len(v) == 0 {
 			return false, nil
 		}
-		if v[0] == 0x00 {
+		switch v[0] {
+		case 0x00:
 			return false, nil
-		} else if v[0] == 0x01 {
+		case 0x01:
 			return true, nil
+		default:
+			return strconv.ParseBool(string(v))
 		}
-		return strconv.ParseBool(string(v))
 	case string:
 		return strconv.ParseBool(v)
 	case *sql.NullInt64:

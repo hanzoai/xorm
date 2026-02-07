@@ -12,7 +12,7 @@ import (
 )
 
 // AsString converts interface as string
-func AsString(src interface{}) string {
+func AsString(src any) string {
 	switch v := src.(type) {
 	case string:
 		return v
@@ -21,9 +21,9 @@ func AsString(src interface{}) string {
 	case *sql.NullString:
 		return v.String
 	case *sql.NullInt32:
-		return fmt.Sprintf("%d", v.Int32)
+		return strconv.Itoa(int(v.Int32))
 	case *sql.NullInt64:
-		return fmt.Sprintf("%d", v.Int64)
+		return strconv.FormatInt(v.Int64, 10)
 	}
 	rv := reflect.ValueOf(src)
 	switch rv.Kind() {
@@ -42,7 +42,7 @@ func AsString(src interface{}) string {
 }
 
 // AsBytes converts interface as bytes
-func AsBytes(src interface{}) ([]byte, bool) {
+func AsBytes(src any) ([]byte, bool) {
 	switch t := src.(type) {
 	case []byte:
 		return t, true

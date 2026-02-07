@@ -838,14 +838,13 @@ func (db *postgres) Version(ctx context.Context, queryer core.Queryer) (*schemas
 				Level:   versions[1],
 				Edition: "PostgreSQL",
 			}, nil
-		} else {
-			versions := strings.Split(strings.TrimPrefix(version, "PostgreSQL "), ",")
-			return &schemas.Version{
-				Number:  versions[0],
-				Level:   versions[1],
-				Edition: "PostgreSQL",
-			}, nil
 		}
+		versions := strings.Split(strings.TrimPrefix(version, "PostgreSQL "), ",")
+		return &schemas.Version{
+			Number:  versions[0],
+			Level:   versions[1],
+			Edition: "PostgreSQL",
+		}, nil
 	} else if strings.HasPrefix(version, "KingbaseES") {
 		if strings.Contains(version, " on ") {
 			versions := strings.Split(strings.TrimPrefix(version, "KingbaseES "), " on ")
@@ -854,14 +853,13 @@ func (db *postgres) Version(ctx context.Context, queryer core.Queryer) (*schemas
 				Level:   versions[1],
 				Edition: "KingbaseES",
 			}, nil
-		} else {
-			versions := strings.Split(strings.TrimPrefix(version, "KingbaseES "), ",")
-			return &schemas.Version{
-				Number:  versions[0],
-				Level:   versions[1],
-				Edition: "KingbaseES",
-			}, nil
 		}
+		versions := strings.Split(strings.TrimPrefix(version, "KingbaseES "), ",")
+		return &schemas.Version{
+			Number:  versions[0],
+			Level:   versions[1],
+			Edition: "KingbaseES",
+		}, nil
 	}
 
 	return nil, errors.New("unknow database version")
@@ -998,13 +996,13 @@ func (db *postgres) AutoIncrStr() string {
 	return ""
 }
 
-func (db *postgres) IndexCheckSQL(tableName, idxName string) (string, []interface{}) {
+func (db *postgres) IndexCheckSQL(tableName, idxName string) (string, []any) {
 	if len(db.getSchema()) == 0 {
-		args := []interface{}{tableName, idxName}
+		args := []any{tableName, idxName}
 		return `SELECT indexname FROM pg_indexes WHERE tablename = ? AND indexname = ?`, args
 	}
 
-	args := []interface{}{db.getSchema(), tableName, idxName}
+	args := []any{db.getSchema(), tableName, idxName}
 	return `SELECT indexname FROM pg_indexes ` +
 		`WHERE schemaname = ? AND tablename = ? AND indexname = ?`, args
 }
@@ -1022,31 +1020,29 @@ func (db *postgres) AddColumnSQL(tableName string, col *schemas.Column) string {
 	s, _ := ColumnString(db.dialect, col, true, false)
 
 	quoter := db.dialect.Quoter()
-	addColumnSQL := ""
 	commentSQL := "; "
 	if len(db.getSchema()) == 0 || strings.Contains(tableName, ".") {
-		addColumnSQL = fmt.Sprintf("ALTER TABLE %s ADD %s", quoter.Quote(tableName), s)
+		addColumnSQL := fmt.Sprintf("ALTER TABLE %s ADD %s", quoter.Quote(tableName), s)
 		commentSQL += fmt.Sprintf("COMMENT ON COLUMN %s.%s IS '%s'", quoter.Quote(tableName), quoter.Quote(col.Name), col.Comment)
 		return addColumnSQL + commentSQL
 	}
 
-	addColumnSQL = fmt.Sprintf("ALTER TABLE %s.%s ADD %s", quoter.Quote(db.getSchema()), quoter.Quote(tableName), s)
+	addColumnSQL := fmt.Sprintf("ALTER TABLE %s.%s ADD %s", quoter.Quote(db.getSchema()), quoter.Quote(tableName), s)
 	commentSQL += fmt.Sprintf("COMMENT ON COLUMN %s.%s.%s IS '%s'", quoter.Quote(db.getSchema()), quoter.Quote(tableName), quoter.Quote(col.Name), col.Comment)
 	return addColumnSQL + commentSQL
 }
 
 func (db *postgres) ModifyColumnSQL(tableName string, col *schemas.Column) string {
 	quoter := db.dialect.Quoter()
-	modifyColumnSQL := ""
 	commentSQL := "; "
 
 	if len(db.getSchema()) == 0 || strings.Contains(tableName, ".") {
-		modifyColumnSQL = fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE %s", quoter.Quote(tableName), quoter.Quote(col.Name), db.SQLType(col))
+		modifyColumnSQL := fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE %s", quoter.Quote(tableName), quoter.Quote(col.Name), db.SQLType(col))
 		commentSQL += fmt.Sprintf("COMMENT ON COLUMN %s.%s IS '%s'", quoter.Quote(tableName), quoter.Quote(col.Name), col.Comment)
 		return modifyColumnSQL + commentSQL
 	}
 
-	modifyColumnSQL = fmt.Sprintf("ALTER TABLE %s.%s ALTER COLUMN %s TYPE %s", quoter.Quote(db.getSchema()), quoter.Quote(tableName), quoter.Quote(col.Name), db.SQLType(col))
+	modifyColumnSQL := fmt.Sprintf("ALTER TABLE %s.%s ALTER COLUMN %s TYPE %s", quoter.Quote(db.getSchema()), quoter.Quote(tableName), quoter.Quote(col.Name), db.SQLType(col))
 	commentSQL += fmt.Sprintf("COMMENT ON COLUMN %s.%s.%s IS '%s'", quoter.Quote(db.getSchema()), quoter.Quote(tableName), quoter.Quote(col.Name), col.Comment)
 	return modifyColumnSQL + commentSQL
 }
@@ -1054,7 +1050,7 @@ func (db *postgres) ModifyColumnSQL(tableName string, col *schemas.Column) strin
 func (db *postgres) DropIndexSQL(tableName string, index *schemas.Index) string {
 	idxName := index.Name
 
-	tableParts := strings.Split(strings.Replace(tableName, `"`, "", -1), ".")
+	tableParts := strings.Split(strings.ReplaceAll(tableName, `"`, ""), ".")
 	tableName = tableParts[len(tableParts)-1]
 
 	if index.IsRegular {
@@ -1071,11 +1067,11 @@ func (db *postgres) DropIndexSQL(tableName string, index *schemas.Index) string 
 }
 
 func (db *postgres) IsColumnExist(queryer core.Queryer, ctx context.Context, tableName, colName string) (bool, error) {
-	args := []interface{}{db.getSchema(), tableName, colName}
+	args := []any{db.getSchema(), tableName, colName}
 	query := "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = $1 AND table_name = $2" +
 		" AND column_name = $3"
 	if len(db.getSchema()) == 0 {
-		args = []interface{}{tableName, colName}
+		args = []any{tableName, colName}
 		query = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = $1" +
 			" AND column_name = $2"
 	}
@@ -1093,7 +1089,7 @@ func (db *postgres) IsColumnExist(queryer core.Queryer, ctx context.Context, tab
 }
 
 func (db *postgres) GetColumns(queryer core.Queryer, ctx context.Context, tableName string) ([]string, map[string]*schemas.Column, error) {
-	args := []interface{}{tableName}
+	args := []any{tableName}
 	s := `SELECT column_name, column_default, is_nullable, data_type, character_maximum_length, description,
     CASE WHEN p.contype = 'p' THEN true ELSE false END AS primarykey,
     CASE WHEN p.contype = 'u' THEN true ELSE false END AS uniquekey
@@ -1226,8 +1222,8 @@ WHERE n.nspname= s.table_schema AND c.relkind = 'r' AND c.relname = $1%s AND f.a
 
 		if !col.DefaultIsEmpty {
 			if col.SQLType.IsText() {
-				if strings.HasSuffix(col.Default, "::character varying") {
-					col.Default = strings.TrimSuffix(col.Default, "::character varying")
+				if trimmed, ok := strings.CutSuffix(col.Default, "::character varying"); ok {
+					col.Default = trimmed
 				} else if !strings.HasPrefix(col.Default, "'") {
 					col.Default = "'" + col.Default + "'"
 				}
@@ -1246,12 +1242,12 @@ WHERE n.nspname= s.table_schema AND c.relkind = 'r' AND c.relname = $1%s AND f.a
 }
 
 func (db *postgres) GetTables(queryer core.Queryer, ctx context.Context) ([]*schemas.Table, error) {
-	args := []interface{}{}
+	args := []any{}
 	s := "SELECT tablename FROM pg_tables"
 	schema := db.getSchema()
 	if schema != "" {
 		args = append(args, schema)
-		s = s + " WHERE schemaname = $1"
+		s += " WHERE schemaname = $1"
 	}
 
 	rows, err := queryer.QueryContext(ctx, s, args...)
@@ -1289,7 +1285,7 @@ func getIndexColName(indexdef string) []string {
 }
 
 func (db *postgres) GetIndexes(queryer core.Queryer, ctx context.Context, tableName string) (map[string]*schemas.Index, error) {
-	args := []interface{}{tableName}
+	args := []any{tableName}
 	s := "SELECT indexname, indexdef FROM pg_indexes WHERE tablename=$1"
 	if len(db.getSchema()) != 0 {
 		args = append(args, db.getSchema())
@@ -1343,7 +1339,7 @@ func (db *postgres) GetIndexes(queryer core.Queryer, ctx context.Context, tableN
 
 		index := &schemas.Index{Name: indexName, Type: indexType, Cols: make([]string, 0)}
 		for _, colName := range colNames {
-			col := strings.TrimSpace(strings.Replace(colName, `"`, "", -1))
+			col := strings.TrimSpace(strings.ReplaceAll(colName, `"`, ""))
 			fields := strings.Split(col, " ")
 			index.Cols = append(index.Cols, fields[0])
 		}
@@ -1367,21 +1363,26 @@ func (db *postgres) CreateTableSQL(ctx context.Context, queryer core.Queryer, ta
 		return "", ok, err
 	}
 
-	commentSQL := "; "
+	var commentSQL strings.Builder
+	commentSQL.WriteString("; ")
 	if table.Comment != "" {
 		// support schema.table -> "schema"."table"
-		commentSQL += fmt.Sprintf("COMMENT ON TABLE %s IS '%s'; ", quoter.Quote(tableName), table.Comment)
+		if _, err := fmt.Fprintf(&commentSQL, "COMMENT ON TABLE %s IS '%s'; ", quoter.Quote(tableName), table.Comment); err != nil {
+			return "", ok, err
+		}
 	}
 
 	for _, colName := range table.ColumnsSeq() {
 		col := table.GetColumn(colName)
 
 		if len(col.Comment) > 0 {
-			commentSQL += fmt.Sprintf("COMMENT ON COLUMN %s.%s IS '%s'; ", quoter.Quote(tableName), quoter.Quote(col.Name), col.Comment)
+			if _, err := fmt.Fprintf(&commentSQL, "COMMENT ON COLUMN %s.%s IS '%s'; ", quoter.Quote(tableName), quoter.Quote(col.Name), col.Comment); err != nil {
+				return "", ok, err
+			}
 		}
 	}
 
-	return createTableSQL + commentSQL, true, nil
+	return createTableSQL + commentSQL.String(), true, nil
 }
 
 func (db *postgres) Filters() []Filter {
@@ -1460,10 +1461,11 @@ func parseOpts(urlStr string, o values) error {
 				state = 3
 			}
 		default:
-			if state == 3 {
+			switch state {
+			case 3:
 				state = 2
 				start = i
-			} else if state == 1 {
+			case 1:
 				state = 0
 				start = i
 			}
@@ -1522,7 +1524,7 @@ func (p *pqDriver) Parse(driverName, dataSourceName string) (*URI, error) {
 	return db, nil
 }
 
-func (p *pqDriver) GenScanResult(colType string) (interface{}, error) {
+func (p *pqDriver) GenScanResult(colType string) (any, error) {
 	switch colType {
 	case "VARCHAR", "TEXT":
 		var s sql.NullString

@@ -19,6 +19,8 @@ jobs:
         run: make vet
       - name: format check
         run: make fmt-check
+      - name: lint
+        run: make lint
       - name: unit test
         run: make test
       - name: test sqlite3

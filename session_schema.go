@@ -8,7 +8,6 @@ import (
 	"bufio"
 	"context"
 	"database/sql"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -28,7 +27,7 @@ func (session *Session) Ping() error {
 }
 
 // CreateTable create a table according a bean
-func (session *Session) CreateTable(bean interface{}) error {
+func (session *Session) CreateTable(bean any) error {
 	if session.isAutoClose {
 		defer session.Close()
 	}
@@ -36,7 +35,7 @@ func (session *Session) CreateTable(bean interface{}) error {
 	return session.createTable(bean)
 }
 
-func (session *Session) createTable(bean interface{}) error {
+func (session *Session) createTable(bean any) error {
 	if err := session.statement.SetRefBean(bean); err != nil {
 		return err
 	}
@@ -67,7 +66,7 @@ func (session *Session) createTable(bean interface{}) error {
 }
 
 // CreateIndexes create indexes
-func (session *Session) CreateIndexes(bean interface{}) error {
+func (session *Session) CreateIndexes(bean any) error {
 	if session.isAutoClose {
 		defer session.Close()
 	}
@@ -75,7 +74,7 @@ func (session *Session) CreateIndexes(bean interface{}) error {
 	return session.createIndexes(bean)
 }
 
-func (session *Session) createIndexes(bean interface{}) error {
+func (session *Session) createIndexes(bean any) error {
 	if err := session.statement.SetRefBean(bean); err != nil {
 		return err
 	}
@@ -91,14 +90,14 @@ func (session *Session) createIndexes(bean interface{}) error {
 }
 
 // CreateUniques create uniques
-func (session *Session) CreateUniques(bean interface{}) error {
+func (session *Session) CreateUniques(bean any) error {
 	if session.isAutoClose {
 		defer session.Close()
 	}
 	return session.createUniques(bean)
 }
 
-func (session *Session) createUniques(bean interface{}) error {
+func (session *Session) createUniques(bean any) error {
 	if err := session.statement.SetRefBean(bean); err != nil {
 		return err
 	}
@@ -114,7 +113,7 @@ func (session *Session) createUniques(bean interface{}) error {
 }
 
 // DropIndexes drop indexes
-func (session *Session) DropIndexes(bean interface{}) error {
+func (session *Session) DropIndexes(bean any) error {
 	if session.isAutoClose {
 		defer session.Close()
 	}
@@ -122,7 +121,7 @@ func (session *Session) DropIndexes(bean interface{}) error {
 	return session.dropIndexes(bean)
 }
 
-func (session *Session) dropIndexes(bean interface{}) error {
+func (session *Session) dropIndexes(bean any) error {
 	if err := session.statement.SetRefBean(bean); err != nil {
 		return err
 	}
@@ -138,7 +137,7 @@ func (session *Session) dropIndexes(bean interface{}) error {
 }
 
 // DropTable drop table will drop table if exist, if drop failed, it will return error
-func (session *Session) DropTable(beanOrTableName interface{}) error {
+func (session *Session) DropTable(beanOrTableName any) error {
 	if session.isAutoClose {
 		defer session.Close()
 	}
@@ -146,7 +145,7 @@ func (session *Session) DropTable(beanOrTableName interface{}) error {
 	return session.dropTable(beanOrTableName)
 }
 
-func (session *Session) dropTable(beanOrTableName interface{}) error {
+func (session *Session) dropTable(beanOrTableName any) error {
 	tableName := session.engine.TableName(beanOrTableName)
 	sqlStr, checkIfExist := session.engine.dialect.DropTableSQL(session.engine.TableName(tableName, true))
 	if !checkIfExist {
@@ -186,7 +185,7 @@ func (session *Session) dropTable(beanOrTableName interface{}) error {
 }
 
 // IsTableExist if a table is exist
-func (session *Session) IsTableExist(beanOrTableName interface{}) (bool, error) {
+func (session *Session) IsTableExist(beanOrTableName any) (bool, error) {
 	if session.isAutoClose {
 		defer session.Close()
 	}
@@ -201,7 +200,7 @@ func (session *Session) isTableExist(tableName string) (bool, error) {
 }
 
 // IsTableEmpty if table have any records
-func (session *Session) IsTableEmpty(bean interface{}) (bool, error) {
+func (session *Session) IsTableEmpty(bean any) (bool, error) {
 	if session.isAutoClose {
 		defer session.Close()
 	}
@@ -210,7 +209,7 @@ func (session *Session) IsTableEmpty(bean interface{}) (bool, error) {
 
 func (session *Session) isTableEmpty(tableName string) (bool, error) {
 	var total int64
-	sqlStr := fmt.Sprintf("select count(*) from %s", session.engine.Quote(session.engine.TableName(tableName, true)))
+	sqlStr := "select count(*) from " + session.engine.Quote(session.engine.TableName(tableName, true))
 	err := session.queryRow(sqlStr).Scan(&total)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -313,6 +312,8 @@ func (session *Session) Import(r io.Reader) ([]sql.Result, error) {
 }
 
 func (session *Session) IndexHint(op, forType, indexerOrColName string) *Session {
-	session.statement.IndexHint(op, forType, indexerOrColName)
+	if err := session.statement.IndexHint(op, forType, indexerOrColName); err != nil {
+		session.statement.LastError = err
+	}
 	return session
 }

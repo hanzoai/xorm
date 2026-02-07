@@ -281,22 +281,18 @@ func (db *mysql) SQLType(c *schemas.Column) string {
 		c.Length = 64
 	case schemas.Enum: // mysql enum
 		res = schemas.Enum
-		res += "("
-		opts := ""
+		opts := make([]string, 0, len(c.EnumOptions))
 		for v := range c.EnumOptions {
-			opts += fmt.Sprintf(",'%v'", v)
+			opts = append(opts, fmt.Sprintf("'%v'", v))
 		}
-		res += strings.TrimLeft(opts, ",")
-		res += ")"
+		res += "(" + strings.Join(opts, ",") + ")"
 	case schemas.Set: // mysql set
 		res = schemas.Set
-		res += "("
-		opts := ""
+		opts := make([]string, 0, len(c.SetOptions))
 		for v := range c.SetOptions {
-			opts += fmt.Sprintf(",'%v'", v)
+			opts = append(opts, fmt.Sprintf("'%v'", v))
 		}
-		res += strings.TrimLeft(opts, ",")
-		res += ")"
+		res += "(" + strings.Join(opts, ",") + ")"
 	case schemas.NVarchar:
 		res = schemas.Varchar
 	case schemas.Uuid:
@@ -371,8 +367,8 @@ func (db *mysql) AutoIncrStr() string {
 	return "AUTO_INCREMENT"
 }
 
-func (db *mysql) IndexCheckSQL(tableName, idxName string) (string, []interface{}) {
-	args := []interface{}{db.uri.DBName, tableName, idxName}
+func (db *mysql) IndexCheckSQL(tableName, idxName string) (string, []any) {
+	args := []any{db.uri.DBName, tableName, idxName}
 	sql := "SELECT `INDEX_NAME` FROM `INFORMATION_SCHEMA`.`STATISTICS`"
 	sql += " WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ? AND `INDEX_NAME`=?"
 	return sql, args
@@ -388,7 +384,7 @@ func (db *mysql) AddColumnSQL(tableName string, col *schemas.Column) string {
 	s, _ := ColumnString(db, col, true, true)
 	var b strings.Builder
 	b.WriteString("ALTER TABLE ")
-	quoter.QuoteTo(&b, tableName)
+	b.WriteString(quoter.Quote(tableName))
 	b.WriteString(" ADD ")
 	b.WriteString(s)
 	if len(col.Comment) > 0 {
@@ -406,13 +402,13 @@ func (db *mysql) ModifyColumnSQL(tableName string, col *schemas.Column) string {
 		s += " " + db.AutoIncrStr()
 	}
 	if col.Comment != "" {
-		s += fmt.Sprintf(" COMMENT '%s'", col.Comment)
+		s += " COMMENT '" + col.Comment + "'"
 	}
 	return fmt.Sprintf("ALTER TABLE %s MODIFY COLUMN %s", db.quoter.Quote(tableName), s)
 }
 
 func (db *mysql) GetColumns(queryer core.Queryer, ctx context.Context, tableName string) ([]string, map[string]*schemas.Column, error) {
-	args := []interface{}{db.uri.DBName, tableName}
+	args := []any{db.uri.DBName, tableName}
 	alreadyQuoted := "(INSTR(VERSION(), 'maria') > 0 && " +
 		"(SUBSTRING_INDEX(VERSION(), '.', 1) > 10 || " +
 		"(SUBSTRING_INDEX(VERSION(), '.', 1) = 10 && " +
@@ -549,7 +545,7 @@ func (db *mysql) GetColumns(queryer core.Queryer, ctx context.Context, tableName
 }
 
 func (db *mysql) GetTables(queryer core.Queryer, ctx context.Context) ([]*schemas.Table, error) {
-	args := []interface{}{db.uri.DBName}
+	args := []any{db.uri.DBName}
 	s := "SELECT `TABLE_NAME`, `ENGINE`, `AUTO_INCREMENT`, `TABLE_COMMENT`, `TABLE_COLLATION` from " +
 		"`INFORMATION_SCHEMA`.`TABLES` WHERE `TABLE_SCHEMA`=? AND (`ENGINE`='MyISAM' OR `ENGINE` = 'InnoDB' OR `ENGINE` = 'TokuDB')"
 
@@ -601,7 +597,7 @@ func (db *mysql) SetQuotePolicy(quotePolicy QuotePolicy) {
 }
 
 func (db *mysql) GetIndexes(queryer core.Queryer, ctx context.Context, tableName string) (map[string]*schemas.Index, error) {
-	args := []interface{}{db.uri.DBName, tableName}
+	args := []any{db.uri.DBName, tableName}
 	s := "SELECT `INDEX_NAME`, `NON_UNIQUE`, `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`STATISTICS` WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ? ORDER BY `SEQ_IN_INDEX`"
 
 	rows, err := queryer.QueryContext(ctx, s, args...)
@@ -661,7 +657,7 @@ func (db *mysql) CreateTableSQL(ctx context.Context, queryer core.Queryer, table
 	quoter := db.dialect.Quoter()
 	var b strings.Builder
 	b.WriteString("CREATE TABLE IF NOT EXISTS ")
-	quoter.QuoteTo(&b, tableName)
+	b.WriteString(quoter.Quote(tableName))
 	b.WriteString(" (")
 
 	for i, colName := range table.ColumnsSeq() {
@@ -763,8 +759,8 @@ func (p *mysqlDriver) Parse(driverName, dataSourceName string) (*URI, error) {
 	return uri, nil
 }
 
-func (p *mysqlDriver) GenScanResult(colType string) (interface{}, error) {
-	colType = strings.Replace(colType, "UNSIGNED ", "", -1)
+func (p *mysqlDriver) GenScanResult(colType string) (any, error) {
+	colType = strings.ReplaceAll(colType, "UNSIGNED ", "")
 	switch colType {
 	case "CHAR", "VARCHAR", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT", "ENUM", "SET", "JSON":
 		var s sql.NullString

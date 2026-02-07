@@ -71,9 +71,8 @@ func BenchmarkGetColumnIdxWithToLower(b *testing.B) {
 			if c, ok := table.columnsMap[strings.ToLower(test.name)]; ok {
 				if test.idx < len(c) {
 					continue
-				} else {
-					b.Errorf("Bad idx in: %s, %d", test.name, test.idx)
 				}
+				b.Errorf("Bad idx in: %s, %d", test.name, test.idx)
 			} else {
 				b.Errorf("Column not found: %s, %d", test.name, test.idx)
 			}
