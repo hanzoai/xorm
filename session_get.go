@@ -56,11 +56,12 @@ func (session *Session) get(beans ...any) (bool, error) {
 	}
 
 	beanValue := reflect.ValueOf(beans[0])
-	if beanValue.Kind() != reflect.Ptr {
+	switch {
+	case beanValue.Kind() != reflect.Ptr:
 		return false, errors.New("needs a pointer to a value")
-	} else if beanValue.Elem().Kind() == reflect.Ptr {
+	case beanValue.Elem().Kind() == reflect.Ptr:
 		return false, errors.New("a pointer to a pointer is not allowed")
-	} else if beanValue.IsNil() {
+	case beanValue.IsNil():
 		return false, ErrObjectIsNil
 	}
 
@@ -313,15 +314,16 @@ func (session *Session) cacheGet(bean any, sqlStr string, args ...any) (has bool
 
 		var pk schemas.PK = make([]any, len(table.PrimaryKeys))
 		for i, col := range table.PKColumns() {
-			if col.SQLType.IsText() {
+			switch {
+			case col.SQLType.IsText():
 				pk[i] = res[i]
-			} else if col.SQLType.IsNumeric() {
+			case col.SQLType.IsNumeric():
 				n, err := strconv.ParseInt(res[i], 10, 64)
 				if err != nil {
 					return false, err
 				}
 				pk[i] = n
-			} else {
+			default:
 				return false, errors.New("unsupported")
 			}
 		}

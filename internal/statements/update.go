@@ -52,11 +52,12 @@ func (statement *Statement) ifAddColUpdate(col *schemas.Column, includeVersion, 
 		return false
 	}
 
-	if statement.IncrColumns.IsColExist(col.Name) {
+	switch {
+	case statement.IncrColumns.IsColExist(col.Name):
 		return false
-	} else if statement.DecrColumns.IsColExist(col.Name) {
+	case statement.DecrColumns.IsColExist(col.Name):
 		return false
-	} else if statement.ExprColumns.IsColExist(col.Name) {
+	case statement.ExprColumns.IsColExist(col.Name):
 		return false
 	}
 
@@ -268,33 +269,33 @@ func (statement *Statement) BuildUpdates(tableValue reflect.Value,
 				}
 			}
 
-			if col.SQLType.IsText() {
+			switch {
+			case col.SQLType.IsText():
 				bytes, err := json.DefaultJSONHandler.Marshal(fieldValue.Interface())
 				if err != nil {
 					return nil, nil, err
 				}
 				val = string(bytes)
-			} else if col.SQLType.IsBlob() {
+			case col.SQLType.IsBlob():
 				var bytes []byte
 				var err error
-				if fieldType.Kind() == reflect.Slice &&
-					fieldType.Elem().Kind() == reflect.Uint8 {
+				switch {
+				case fieldType.Kind() == reflect.Slice && fieldType.Elem().Kind() == reflect.Uint8:
 					if fieldValue.Len() > 0 {
 						val = fieldValue.Bytes()
 					} else {
 						continue
 					}
-				} else if fieldType.Kind() == reflect.Array &&
-					fieldType.Elem().Kind() == reflect.Uint8 {
+				case fieldType.Kind() == reflect.Array && fieldType.Elem().Kind() == reflect.Uint8:
 					val = fieldValue.Slice(0, 0).Interface()
-				} else {
+				default:
 					bytes, err = json.DefaultJSONHandler.Marshal(fieldValue.Interface())
 					if err != nil {
 						return nil, nil, err
 					}
 					val = bytes
 				}
-			} else {
+			default:
 				continue
 			}
 		default:

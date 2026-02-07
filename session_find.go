@@ -95,7 +95,8 @@ func (session *Session) find(rowsSlicePtr any, condiBean ...any) error {
 
 	tp := tpStruct
 	if session.statement.RefTable == nil {
-		if sliceElementType.Kind() == reflect.Ptr {
+		switch sliceElementType.Kind() {
+		case reflect.Ptr:
 			if sliceElementType.Elem().Kind() == reflect.Struct {
 				pv := reflect.New(sliceElementType.Elem())
 				if err := session.statement.SetRefValue(pv); err != nil {
@@ -104,12 +105,12 @@ func (session *Session) find(rowsSlicePtr any, condiBean ...any) error {
 			} else {
 				tp = tpNonStruct
 			}
-		} else if sliceElementType.Kind() == reflect.Struct {
+		case reflect.Struct:
 			pv := reflect.New(sliceElementType)
 			if err := session.statement.SetRefValue(pv); err != nil {
 				return err
 			}
-		} else {
+		default:
 			tp = tpNonStruct
 		}
 	}

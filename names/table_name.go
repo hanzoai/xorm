@@ -31,17 +31,18 @@ func GetTableName(mapper Mapper, v reflect.Value) string {
 		return v.Interface().(TableName).TableName()
 	}
 
-	if v.Kind() == reflect.Ptr {
+	switch {
+	case v.Kind() == reflect.Ptr:
 		v = v.Elem()
 		if v.Type().Implements(tpTableName) {
 			return v.Interface().(TableName).TableName()
 		}
-	} else if v.CanAddr() {
+	case v.CanAddr():
 		v1 := v.Addr()
 		if v1.Type().Implements(tpTableName) {
 			return v1.Interface().(TableName).TableName()
 		}
-	} else {
+	default:
 		name, ok := tvCache.Load(v.Type())
 		if ok {
 			if name.(string) != "" {
@@ -68,17 +69,18 @@ func GetTableComment(v reflect.Value) string {
 		return v.Interface().(TableComment).TableComment()
 	}
 
-	if v.Kind() == reflect.Ptr {
+	switch {
+	case v.Kind() == reflect.Ptr:
 		v = v.Elem()
 		if v.Type().Implements(tpTableComment) {
 			return v.Interface().(TableComment).TableComment()
 		}
-	} else if v.CanAddr() {
+	case v.CanAddr():
 		v1 := v.Addr()
 		if v1.Type().Implements(tpTableComment) {
 			return v1.Interface().(TableComment).TableComment()
 		}
-	} else {
+	default:
 		comment, ok := tcCache.Load(v.Type())
 		if ok {
 			if comment.(string) != "" {

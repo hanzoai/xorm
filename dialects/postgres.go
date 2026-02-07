@@ -824,13 +824,14 @@ func (db *postgres) Version(ctx context.Context, queryer core.Queryer) (*schemas
 	// Postgres: PostgreSQL 15.3, compiled by Visual C++ build 1914, 64-bit
 	// KingbaseES V008R006C008B0014 on x64, compiled by Visual C++ build 1800, 64-bit
 	// CockroachDB CCL v19.2.4 (x86_64-unknown-linux-gnu, built
-	if strings.HasPrefix(version, "CockroachDB") {
+	switch {
+	case strings.HasPrefix(version, "CockroachDB"):
 		versions := strings.Split(strings.TrimPrefix(version, "CockroachDB CCL "), " ")
 		return &schemas.Version{
 			Number:  strings.TrimPrefix(versions[0], "v"),
 			Edition: "CockroachDB",
 		}, nil
-	} else if strings.HasPrefix(version, "PostgreSQL") {
+	case strings.HasPrefix(version, "PostgreSQL"):
 		if strings.Contains(version, " on ") {
 			versions := strings.Split(strings.TrimPrefix(version, "PostgreSQL "), " on ")
 			return &schemas.Version{
@@ -845,7 +846,7 @@ func (db *postgres) Version(ctx context.Context, queryer core.Queryer) (*schemas
 			Level:   versions[1],
 			Edition: "PostgreSQL",
 		}, nil
-	} else if strings.HasPrefix(version, "KingbaseES") {
+	case strings.HasPrefix(version, "KingbaseES"):
 		if strings.Contains(version, " on ") {
 			versions := strings.Split(strings.TrimPrefix(version, "KingbaseES "), " on ")
 			return &schemas.Version{

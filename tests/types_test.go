@@ -586,9 +586,7 @@ func TestDecimal(t *testing.T) {
 type MyArray [20]byte
 
 func (d *MyArray) FromDB(data []byte) error {
-	for i, b := range data[:20] {
-		(*d)[i] = b
-	}
+	copy((*d)[:], data[:20])
 	return nil
 }
 

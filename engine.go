@@ -644,7 +644,8 @@ func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w
 						return err
 					}
 				} else {
-					if table.Columns()[i].SQLType.IsBool() || stp.IsBool() || (dstDialect.URI().DBType == schemas.MSSQL && strings.EqualFold(stp.Name, schemas.Bit)) {
+					switch {
+					case table.Columns()[i].SQLType.IsBool() || stp.IsBool() || (dstDialect.URI().DBType == schemas.MSSQL && strings.EqualFold(stp.Name, schemas.Bit)):
 						val, err := strconv.ParseBool(s.String)
 						if err != nil {
 							return err
@@ -653,20 +654,20 @@ func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w
 						if _, err = io.WriteString(w, formatBool(val, dstDialect)); err != nil {
 							return err
 						}
-					} else if stp.IsNumeric() {
+					case stp.IsNumeric():
 						if _, err = io.WriteString(w, s.String); err != nil {
 							return err
 						}
-					} else if sess.engine.dialect.URI().DBType == schemas.DAMENG && stp.IsTime() && len(s.String) == 25 {
+					case sess.engine.dialect.URI().DBType == schemas.DAMENG && stp.IsTime() && len(s.String) == 25:
 						r := strings.ReplaceAll(s.String[:19], "T", " ")
 						if _, err = io.WriteString(w, "'"+r+"'"); err != nil {
 							return err
 						}
-					} else if len(s.String) == 0 {
+					case len(s.String) == 0:
 						if _, err := io.WriteString(w, "''"); err != nil {
 							return err
 						}
-					} else if dstDialect.URI().DBType == schemas.POSTGRES {
+					case dstDialect.URI().DBType == schemas.POSTGRES:
 						if dstTable.Columns()[i].SQLType.IsBlob() {
 							// Postgres has the escape format and we should use that for bytea data
 							if _, err := fmt.Fprintf(w, "'\\x%x'", s.String); err != nil {
@@ -708,7 +709,7 @@ func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w
 								}
 							}
 						}
-					} else if dstDialect.URI().DBType == schemas.MYSQL {
+					case dstDialect.URI().DBType == schemas.MYSQL:
 						loc := controlCharactersRe.FindStringIndex(s.String)
 						if loc == nil {
 							if _, err := io.WriteString(w, "'"+strings.ReplaceAll(s.String, "'", "''")+"'"); err != nil {
@@ -719,7 +720,7 @@ func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w
 								return err
 							}
 						}
-					} else if dstDialect.URI().DBType == schemas.SQLITE {
+					case dstDialect.URI().DBType == schemas.SQLITE:
 						if dstTable.Columns()[i].SQLType.IsBlob() {
 							// SQLite has its escape format
 							if _, err := fmt.Fprintf(w, "X'%x'", s.String); err != nil {
@@ -752,7 +753,7 @@ func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w
 								}
 							}
 						}
-					} else if dstDialect.URI().DBType == schemas.DAMENG || dstDialect.URI().DBType == schemas.ORACLE {
+					case dstDialect.URI().DBType == schemas.DAMENG || dstDialect.URI().DBType == schemas.ORACLE:
 						if dstTable.Columns()[i].SQLType.IsBlob() {
 							// ORACLE/DAMENG uses HEXTORAW
 							if _, err := fmt.Fprintf(w, "HEXTORAW('%x')", s.String); err != nil {
@@ -765,7 +766,7 @@ func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w
 								return err
 							}
 						}
-					} else if dstDialect.URI().DBType == schemas.MSSQL {
+					case dstDialect.URI().DBType == schemas.MSSQL:
 						if dstTable.Columns()[i].SQLType.IsBlob() {
 							// MSSQL uses CONVERT(VARBINARY(MAX), '0xDEADBEEF', 1)
 							if _, err := fmt.Fprintf(w, "CONVERT(VARBINARY(MAX), '0x%x', 1)", s.String); err != nil {
@@ -776,7 +777,7 @@ func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w
 								return err
 							}
 						}
-					} else if sess.engine.dialect.URI().DBType == schemas.GBASE8S {
+					case sess.engine.dialect.URI().DBType == schemas.GBASE8S:
 						stp.Name = strings.Replace(stp.Name, "SQLT_", "", 1)
 						if stp.IsTime() && len(s.String) == 20 { // "2025-06-10T07:55:31Z"
 							t, err := time.Parse(time.RFC3339, s.String)
@@ -792,7 +793,7 @@ func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w
 								return err
 							}
 						}
-					} else {
+					default:
 						if _, err = io.WriteString(w, "'"+strings.ReplaceAll(s.String, "'", "''")+"'"); err != nil {
 							return err
 						}

@@ -580,7 +580,8 @@ func TestCollate(t *testing.T) {
 		UserId: 1,
 		Name:   "Test",
 	})
-	if testEngine.Dialect().URI().DBType == schemas.MYSQL {
+	switch testEngine.Dialect().URI().DBType {
+	case schemas.MYSQL:
 		ver, err1 := testEngine.DBVersion()
 		assert.NoError(t, err1)
 
@@ -602,9 +603,9 @@ func TestCollate(t *testing.T) {
 				break
 			}
 		}
-	} else if testEngine.Dialect().URI().DBType == schemas.MSSQL {
+	case schemas.MSSQL:
 		assert.Error(t, err)
-	} else {
+	default:
 		assert.NoError(t, err)
 	}
 
@@ -614,12 +615,13 @@ func TestCollate(t *testing.T) {
 	}
 
 	var newCollation string
-	if testEngine.Dialect().URI().DBType == schemas.MYSQL {
+	switch testEngine.Dialect().URI().DBType {
+	case schemas.MYSQL:
 		newCollation = "utf8mb4_bin"
-	} else if testEngine.Dialect().URI().DBType != schemas.MSSQL {
-		newCollation = "Latin1_General_CS_AS"
-	} else {
+	case schemas.MSSQL:
 		return
+	default:
+		newCollation = "Latin1_General_CS_AS"
 	}
 
 	alterSQL := testEngine.Dialect().ModifyColumnSQL("test_collate_column", &schemas.Column{

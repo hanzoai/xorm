@@ -157,9 +157,10 @@ func (session *Session) SyncWithOptions(opts SyncOptions, beans ...any) (*SyncRe
 			err = nil
 			expectedType := engine.dialect.SQLType(col)
 			curType := engine.dialect.SQLType(oriCol)
-			if expectedType != curType {
-				if expectedType == schemas.Text &&
-					strings.HasPrefix(curType, schemas.Varchar) {
+			switch {
+			case expectedType != curType:
+				switch {
+				case expectedType == schemas.Text && strings.HasPrefix(curType, schemas.Varchar):
 					// currently only support mysql & postgres
 					if engine.dialect.URI().DBType == schemas.MYSQL ||
 						engine.dialect.URI().DBType == schemas.POSTGRES {
@@ -170,7 +171,7 @@ func (session *Session) SyncWithOptions(opts SyncOptions, beans ...any) (*SyncRe
 						engine.logger.Warnf("Table %s column %s db type is %s, struct type is %s\n",
 							tbNameWithSchema, col.Name, curType, expectedType)
 					}
-				} else if strings.HasPrefix(curType, schemas.Varchar) && strings.HasPrefix(expectedType, schemas.Varchar) {
+				case strings.HasPrefix(curType, schemas.Varchar) && strings.HasPrefix(expectedType, schemas.Varchar):
 					if engine.dialect.URI().DBType == schemas.POSTGRES ||
 						engine.dialect.URI().DBType == schemas.MYSQL {
 						if oriCol.Length < col.Length {
@@ -179,7 +180,7 @@ func (session *Session) SyncWithOptions(opts SyncOptions, beans ...any) (*SyncRe
 							_, err = session.exec(engine.dialect.ModifyColumnSQL(tbNameWithSchema, col))
 						}
 					}
-				} else {
+				default:
 					if !(strings.HasPrefix(curType, expectedType) && curType[len(expectedType)] == '(') {
 						if !strings.EqualFold(schemas.SQLTypeName(curType), engine.dialect.Alias(schemas.SQLTypeName(expectedType))) {
 							engine.logger.Warnf("Table %s column %s db type is %s, struct type is %s",
@@ -187,7 +188,7 @@ func (session *Session) SyncWithOptions(opts SyncOptions, beans ...any) (*SyncRe
 						}
 					}
 				}
-			} else if expectedType == schemas.Varchar {
+			case expectedType == schemas.Varchar:
 				if engine.dialect.URI().DBType == schemas.POSTGRES ||
 					engine.dialect.URI().DBType == schemas.MYSQL {
 					if oriCol.Length < col.Length {
@@ -196,7 +197,7 @@ func (session *Session) SyncWithOptions(opts SyncOptions, beans ...any) (*SyncRe
 						_, err = session.exec(engine.dialect.ModifyColumnSQL(tbNameWithSchema, col))
 					}
 				}
-			} else if col.Comment != oriCol.Comment {
+			case col.Comment != oriCol.Comment:
 				if engine.dialect.URI().DBType == schemas.POSTGRES ||
 					engine.dialect.URI().DBType == schemas.GBASE8S ||
 					engine.dialect.URI().DBType == schemas.MYSQL {

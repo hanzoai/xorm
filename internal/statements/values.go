@@ -85,7 +85,8 @@ func (statement *Statement) Value2Interface(col *schemas.Column, fieldValue refl
 	case reflect.String:
 		return fieldValue.String(), nil
 	case reflect.Struct:
-		if fieldType.ConvertibleTo(schemas.TimeType) {
+		switch {
+		case fieldType.ConvertibleTo(schemas.TimeType):
 			t := fieldValue.Convert(schemas.TimeType).Interface().(time.Time)
 			tf, err := dialects.FormatColumnTime(statement.dialect, statement.defaultTimeZone, col, t)
 			if val, ok := tf.(string); ok {
@@ -101,13 +102,13 @@ func (statement *Statement) Value2Interface(col *schemas.Column, fieldValue refl
 				return &DateTimeString{Layout: layout, Str: val}, err
 			}
 			return tf, err
-		} else if fieldType.ConvertibleTo(nullFloatType) {
+		case fieldType.ConvertibleTo(nullFloatType):
 			t := fieldValue.Convert(nullFloatType).Interface().(sql.NullFloat64)
 			if !t.Valid {
 				return nil, nil
 			}
 			return t.Float64, nil
-		} else if fieldType.ConvertibleTo(bigFloatType) {
+		case fieldType.ConvertibleTo(bigFloatType):
 			t := fieldValue.Convert(bigFloatType).Interface().(big.Float)
 			return t.String(), nil
 		}

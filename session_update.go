@@ -91,7 +91,8 @@ func (session *Session) Update(bean any, condiBean ...any) (int64, error) {
 	var err error
 	isMap := t.Kind() == reflect.Map
 	isStruct := t.Kind() == reflect.Struct
-	if isStruct {
+	switch {
+	case isStruct:
 		if err := session.statement.SetRefBean(bean); err != nil {
 			return 0, err
 		}
@@ -109,7 +110,7 @@ func (session *Session) Update(bean any, condiBean ...any) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-	} else if isMap {
+	case isMap:
 		colNames = make([]string, 0)
 		args = make([]any, 0)
 		bValue := reflect.Indirect(reflect.ValueOf(bean))
@@ -118,7 +119,7 @@ func (session *Session) Update(bean any, condiBean ...any) (int64, error) {
 			colNames = append(colNames, session.engine.Quote(v.String())+" = ?")
 			args = append(args, bValue.MapIndex(v).Interface())
 		}
-	} else {
+	default:
 		return 0, ErrParamsType
 	}
 
@@ -270,11 +271,12 @@ func (session *Session) genUpdateColumns(bean any) ([]string, []any, error) {
 			continue
 		}
 
-		if session.statement.IncrColumns.IsColExist(col.Name) {
+		switch {
+		case session.statement.IncrColumns.IsColExist(col.Name):
 			continue
-		} else if session.statement.DecrColumns.IsColExist(col.Name) {
+		case session.statement.DecrColumns.IsColExist(col.Name):
 			continue
-		} else if session.statement.ExprColumns.IsColExist(col.Name) {
+		case session.statement.ExprColumns.IsColExist(col.Name):
 			continue
 		}
 
@@ -286,7 +288,8 @@ func (session *Session) genUpdateColumns(bean any) ([]string, []any, error) {
 			}
 		}
 
-		if col.IsUpdated && session.statement.UseAutoTime /*&& isZero(fieldValue.Interface())*/ {
+		switch {
+		case col.IsUpdated && session.statement.UseAutoTime: /*&& isZero(fieldValue.Interface())*/
 			// if time is non-empty, then set to auto time
 			val, t, err := session.engine.nowTime(col)
 			if err != nil {
@@ -299,9 +302,9 @@ func (session *Session) genUpdateColumns(bean any) ([]string, []any, error) {
 				col := table.GetColumn(colName)
 				setColumnTime(bean, col, t)
 			})
-		} else if col.IsVersion && session.statement.CheckVersion {
+		case col.IsVersion && session.statement.CheckVersion:
 			args = append(args, 1)
-		} else {
+		default:
 			arg, err := session.statement.Value2Interface(col, fieldValue)
 			if err != nil {
 				return colNames, args, err
