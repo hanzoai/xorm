@@ -644,16 +644,49 @@ func (statement *Statement) ConvertSQLOrArgs(sqlOrArgs ...any) (string, []any, e
 	return statement.ReplaceQuote(sql), args, nil
 }
 
+func (statement *Statement) formatTimeArg(arg any) (any, bool) {
+	const timeFormat = "2006-01-02 15:04:05"
+	if arg == nil {
+		return nil, false
+	}
+	if v, ok := arg.(time.Time); ok {
+		return v.In(statement.defaultTimeZone).Format(timeFormat), true
+	}
+	if v, ok := arg.(*time.Time); ok {
+		if v == nil {
+			return nil, true
+		}
+		return v.In(statement.defaultTimeZone).Format(timeFormat), true
+	}
+
+	rv := reflect.ValueOf(arg)
+	if !rv.IsValid() {
+		return nil, false
+	}
+	if rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			if rv.Type().Elem().ConvertibleTo(schemas.TimeType) {
+				return nil, true
+			}
+			return nil, false
+		}
+		rv = rv.Elem()
+	}
+	if rv.Type().ConvertibleTo(schemas.TimeType) {
+		converted := rv.Convert(schemas.TimeType).Interface().(time.Time)
+		return converted.In(statement.defaultTimeZone).Format(timeFormat), true
+	}
+	return nil, false
+}
+
 func (statement *Statement) convertSQLOrArgs(sqlOrArgs ...any) (string, []any, error) {
 	switch arg := sqlOrArgs[0].(type) {
 	case string:
 		if len(sqlOrArgs) > 1 {
 			newArgs := make([]any, 0, len(sqlOrArgs)-1)
 			for _, arg := range sqlOrArgs[1:] {
-				if v, ok := arg.(time.Time); ok {
-					newArgs = append(newArgs, v.In(statement.defaultTimeZone).Format("2006-01-02 15:04:05"))
-				} else if v, ok := arg.(*time.Time); ok && v != nil {
-					newArgs = append(newArgs, v.In(statement.defaultTimeZone).Format("2006-01-02 15:04:05"))
+				if formatted, ok := statement.formatTimeArg(arg); ok {
+					newArgs = append(newArgs, formatted)
 				} else if v, ok := arg.(convert.ConversionTo); ok {
 					r, err := v.ToDB()
 					if err != nil {
