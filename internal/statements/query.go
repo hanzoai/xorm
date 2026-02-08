@@ -315,25 +315,23 @@ func (statement *Statement) GenExistSQL(bean ...any) (string, []any, error) {
 		return statement.Limit(1).GenGetSQL(b)
 	}
 
-	tableName = statement.quote(tableName)
-
 	buf := builder.NewWriter()
 	switch statement.dialect.URI().DBType {
 	case schemas.MSSQL:
-		if _, err := fmt.Fprintf(buf, "SELECT TOP 1 * FROM %s", tableName); err != nil {
+		if _, err := fmt.Fprintf(buf, "SELECT TOP 1 *"); err != nil {
 			return "", nil, err
 		}
-		if err := statement.writeJoins(buf); err != nil {
+		if err := statement.writeFrom(buf); err != nil {
 			return "", nil, err
 		}
 		if err := statement.writeWhere(buf); err != nil {
 			return "", nil, err
 		}
 	case schemas.ORACLE:
-		if _, err := fmt.Fprintf(buf, "SELECT * FROM %s", tableName); err != nil {
+		if _, err := fmt.Fprintf(buf, "SELECT *"); err != nil {
 			return "", nil, err
 		}
-		if err := statement.writeJoins(buf); err != nil {
+		if err := statement.writeFrom(buf); err != nil {
 			return "", nil, err
 		}
 		if _, err := fmt.Fprintf(buf, " WHERE "); err != nil {
@@ -351,10 +349,10 @@ func (statement *Statement) GenExistSQL(bean ...any) (string, []any, error) {
 			return "", nil, err
 		}
 	default:
-		if _, err := fmt.Fprintf(buf, "SELECT 1 FROM %s", tableName); err != nil {
+		if _, err := fmt.Fprintf(buf, "SELECT 1"); err != nil {
 			return "", nil, err
 		}
-		if err := statement.writeJoins(buf); err != nil {
+		if err := statement.writeFrom(buf); err != nil {
 			return "", nil, err
 		}
 		if err := statement.writeWhere(buf); err != nil {
