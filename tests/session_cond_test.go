@@ -226,3 +226,84 @@ func TestFindAndCount(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, total)
 }
+
+func TestFindAndCountFirstPageLimit(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type FindAndCountLimit struct {
+		Id   int64
+		Name string
+	}
+
+	assert.NoError(t, testEngine.Sync(new(FindAndCountLimit)))
+
+	_, err := testEngine.Insert([]FindAndCountLimit{
+		{
+			Name: "test1",
+		},
+		{
+			Name: "test2",
+		},
+	})
+	assert.NoError(t, err)
+
+	var results []FindAndCountLimit
+	total, err := testEngine.Limit(10, 0).FindAndCount(&results)
+	assert.NoError(t, err)
+	assert.EqualValues(t, 2, len(results))
+	assert.EqualValues(t, 2, total)
+}
+
+func TestFindAndCountLastPageLimit(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type FindAndCountLastPage struct {
+		Id   int64
+		Name string
+	}
+
+	assert.NoError(t, testEngine.Sync(new(FindAndCountLastPage)))
+
+	_, err := testEngine.Insert([]FindAndCountLastPage{
+		{
+			Name: "test1",
+		},
+		{
+			Name: "test2",
+		},
+	})
+	assert.NoError(t, err)
+
+	var results []FindAndCountLastPage
+	total, err := testEngine.Limit(3, 1).FindAndCount(&results)
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, len(results))
+	assert.EqualValues(t, 2, total)
+}
+
+func TestFindAndCountNoLimit(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type FindAndCountNoLimit struct {
+		Id   int64
+		Name string
+	}
+
+	assert.NoError(t, testEngine.Sync(new(FindAndCountNoLimit)))
+
+	_, err := testEngine.Insert([]FindAndCountNoLimit{
+		{
+			Name: "test1",
+		},
+		{
+			Name: "test2",
+		},
+	})
+	assert.NoError(t, err)
+
+	var results []FindAndCountNoLimit
+	total, err := testEngine.FindAndCount(&results)
+	assert.NoError(t, err)
+	assert.EqualValues(t, 2, len(results))
+	assert.EqualValues(t, 2, total)
+}
