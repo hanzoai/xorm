@@ -50,10 +50,6 @@ func (session *Session) FindAndCount(rowsSlicePtr any, condiBean ...any) (int64,
 		return 0, errors.New("needs a pointer to a slice or a map")
 	}
 
-	sliceElementType := sliceValue.Type().Elem()
-	if sliceElementType.Kind() == reflect.Ptr {
-		sliceElementType = sliceElementType.Elem()
-	}
 	session.autoResetStatement = true
 
 	rowCount := int64(sliceValue.Len())
@@ -88,12 +84,7 @@ func (session *Session) FindAndCount(rowsSlicePtr any, condiBean ...any) (int64,
 		session.statement.Start = 0
 	}
 
-	// session has stored the conditions so we use `unscoped` to avoid duplicated condition.
-	if sliceElementType.Kind() == reflect.Struct {
-		return session.Unscoped().Count(reflect.New(sliceElementType).Interface())
-	}
-
-	return session.Unscoped().Count()
+	return session.Count()
 }
 
 func (session *Session) find(rowsSlicePtr any, condiBean ...any) error {

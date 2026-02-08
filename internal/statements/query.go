@@ -114,7 +114,7 @@ func (statement *Statement) GenGetSQL(bean any) (string, []any, error) {
 			return "", nil, err
 		}
 	} else {
-		if !statement.NoAutoCondition && statement.RefTable != nil {
+		if statement.RefTable != nil {
 			if col := statement.RefTable.DeletedColumn(); col != nil && !statement.GetUnscoped() {
 				statement.cond = statement.cond.And(statement.CondDeleted(col))
 			}

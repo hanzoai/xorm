@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"xorm.io/builder"
@@ -224,6 +225,30 @@ func TestFindAndCount(t *testing.T) {
 
 	total, err := testEngine.Where(conds).Count(new(FindAndCount))
 	assert.NoError(t, err)
+	assert.EqualValues(t, 1, total)
+}
+
+func TestFindAndCountWithDeleted(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type FindAndCountDeleted struct {
+		Id        int64 `xorm:"pk"`
+		Name      string
+		DeletedAt time.Time `xorm:"deleted"`
+	}
+
+	assert.NoError(t, testEngine.Sync(new(FindAndCountDeleted)))
+
+	_, err := testEngine.Insert(&FindAndCountDeleted{Id: 1, Name: "keep"}, &FindAndCountDeleted{Id: 2, Name: "remove"})
+	assert.NoError(t, err)
+
+	_, err = testEngine.ID(2).Delete(&FindAndCountDeleted{})
+	assert.NoError(t, err)
+
+	var results []FindAndCountDeleted
+	total, err := testEngine.Limit(1).FindAndCount(&results)
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, len(results))
 	assert.EqualValues(t, 1, total)
 }
 
