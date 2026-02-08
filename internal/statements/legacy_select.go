@@ -19,8 +19,8 @@ func (statement *Statement) isUsingLegacyLimitOffset() bool {
 func (statement *Statement) writeMssqlLegacySelect(buf *builder.BytesWriter, columnStr string) error {
 	return statement.writeMultiple(buf,
 		statement.writeStrings("SELECT"),
-		statement.writeTop,
 		statement.writeDistinct,
+		statement.writeTop,
 		statement.writeStrings(" ", columnStr),
 		statement.writeFrom,
 		statement.writeWhereWithMssqlPagination,
