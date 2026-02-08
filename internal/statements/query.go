@@ -146,29 +146,42 @@ func (statement *Statement) GenCountSQL(beans ...any) (string, []any, error) {
 		}
 	}
 
+	columnStr := statement.ColumnStr()
+	distinctStar := statement.IsDistinct &&
+		len(statement.SelectStr) == 0 &&
+		columnStr != "" &&
+		strings.Contains(columnStr, "*")
+
 	selectSQL := statement.SelectStr
 	if len(selectSQL) == 0 {
 		switch {
-		case statement.IsDistinct:
-			selectSQL = fmt.Sprintf("count(DISTINCT %s)", statement.ColumnStr())
-		case statement.ColumnStr() != "":
-			selectSQL = fmt.Sprintf("count(%s)", statement.ColumnStr())
+		case statement.IsDistinct && !distinctStar:
+			selectSQL = fmt.Sprintf("count(DISTINCT %s)", columnStr)
+		case columnStr != "":
+			selectSQL = fmt.Sprintf("count(%s)", columnStr)
 		default:
 			selectSQL = "count(*)"
 		}
 	}
+	if distinctStar {
+		selectSQL = "count(*)"
+	}
 
 	buf := builder.NewWriter()
-	if statement.GroupByStr != "" {
+	needsSubQuery := statement.GroupByStr != "" || distinctStar
+	if needsSubQuery {
 		if _, err := fmt.Fprintf(buf, "SELECT %s FROM (", selectSQL); err != nil {
 			return "", nil, err
 		}
 	}
 
 	var subQuerySelect string
-	if statement.GroupByStr != "" {
+	switch {
+	case statement.GroupByStr != "":
 		subQuerySelect = statement.GroupByStr
-	} else {
+	case distinctStar:
+		subQuerySelect = columnStr
+	default:
 		subQuerySelect = selectSQL
 	}
 
@@ -176,7 +189,7 @@ func (statement *Statement) GenCountSQL(beans ...any) (string, []any, error) {
 		return "", nil, err
 	}
 
-	if statement.GroupByStr != "" {
+	if needsSubQuery {
 		if _, err := fmt.Fprintf(buf, ") sub"); err != nil {
 			return "", nil, err
 		}

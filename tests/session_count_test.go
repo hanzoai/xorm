@@ -193,6 +193,52 @@ func TestCountWithLimit(t *testing.T) {
 	assert.EqualValues(t, 2, cnt)
 }
 
+func TestDistinctFindAndCount(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type TestDistinctFindAndCount struct {
+		Id   int64
+		Name string `xorm:"index"`
+		Age2 int
+	}
+
+	assertSync(t, new(TestDistinctFindAndCount))
+
+	objects := make([]*TestDistinctFindAndCount, 0, 10)
+	total, err := testEngine.Distinct(testEngine.TableName(new(TestDistinctFindAndCount)) + ".*").FindAndCount(&objects)
+	assert.NoError(t, err)
+	assert.EqualValues(t, 0, total)
+}
+
+func TestDistinctFindAndCountWithLimit(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type DistinctFindAndCountWithLimit struct {
+		Name string
+		Age  int
+	}
+
+	assertSync(t, new(DistinctFindAndCountWithLimit))
+
+	_, err := testEngine.Insert([]DistinctFindAndCountWithLimit{
+		{
+			Name: "dup",
+			Age:  10,
+		},
+		{
+			Name: "dup",
+			Age:  10,
+		},
+	})
+	assert.NoError(t, err)
+
+	objects := make([]*DistinctFindAndCountWithLimit, 0, 10)
+	total, err := testEngine.Distinct(testEngine.TableName(new(DistinctFindAndCountWithLimit)) + ".*").Limit(1).
+		FindAndCount(&objects)
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, total)
+}
+
 func TestCountStructWithDecimal(t *testing.T) {
 	assert.NoError(t, PrepareEngine())
 	type ProductCount struct {
