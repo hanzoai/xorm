@@ -722,9 +722,10 @@ func (p *odbcDriver) Parse(driverName, dataSourceName string) (*URI, error) {
 func (p *odbcDriver) GenScanResult(colType string) (any, error) {
 	switch colType {
 	case "VARCHAR", "TEXT", "CHAR", "NVARCHAR", "NCHAR", "NTEXT":
-		fallthrough
-	case "DATE", "DATETIME", "DATETIME2", "TIME":
 		var s sql.NullString
+		return &s, nil
+	case "DATE", "DATETIME", "DATETIME2", "TIME":
+		var s sql.NullTime
 		return &s, nil
 	case "FLOAT", "REAL":
 		var s sql.NullFloat64
