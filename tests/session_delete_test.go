@@ -217,6 +217,28 @@ func TestDeleted(t *testing.T) {
 	assert.EqualValues(t, 2, len(records3))
 }
 
+func TestNoAutoConditionWithDeletedGet(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type NoAutoConditionDeleted struct {
+		Id        int64 `xorm:"pk"`
+		Name      string
+		DeletedAt time.Time `xorm:"deleted"`
+	}
+
+	assert.NoError(t, testEngine.Sync(new(NoAutoConditionDeleted)))
+
+	_, err := testEngine.Insert(&NoAutoConditionDeleted{Id: 1, Name: "keep"})
+	assert.NoError(t, err)
+
+	_, err = testEngine.ID(1).Delete(&NoAutoConditionDeleted{})
+	assert.NoError(t, err)
+
+	has, err := testEngine.NoAutoCondition().ID(1).Get(&NoAutoConditionDeleted{})
+	assert.NoError(t, err)
+	assert.False(t, has)
+}
+
 func TestCacheDelete(t *testing.T) {
 	assert.NoError(t, PrepareEngine())
 

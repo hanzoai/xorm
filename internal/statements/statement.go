@@ -618,13 +618,17 @@ func (statement *Statement) BuildConds(table *schemas.Table, bean any, includeVe
 
 // MergeConds merge conditions from bean and id
 func (statement *Statement) MergeConds(bean any) error {
-	if !statement.NoAutoCondition && statement.RefTable != nil {
-		addedTableName := len(statement.joins) > 0
-		autoCond, err := statement.BuildConds(statement.RefTable, bean, true, true, false, true, addedTableName)
-		if err != nil {
-			return err
+	if statement.RefTable != nil {
+		if !statement.NoAutoCondition {
+			addedTableName := len(statement.joins) > 0
+			autoCond, err := statement.BuildConds(statement.RefTable, bean, true, true, false, true, addedTableName)
+			if err != nil {
+				return err
+			}
+			statement.cond = statement.cond.And(autoCond)
+		} else if col := statement.RefTable.DeletedColumn(); col != nil && !statement.unscoped {
+			statement.cond = statement.cond.And(statement.CondDeleted(col))
 		}
-		statement.cond = statement.cond.And(autoCond)
 	}
 
 	return statement.ProcessIDParam()
