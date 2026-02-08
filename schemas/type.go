@@ -135,10 +135,11 @@ var (
 	TimeStampz    = "TIMESTAMPZ"
 	Year          = "YEAR"
 
-	Decimal    = "DECIMAL"
-	Numeric    = "NUMERIC"
-	Money      = "MONEY"
-	SmallMoney = "SMALLMONEY"
+	Decimal         = "DECIMAL"
+	UnsignedDecimal = "UNSIGNED DECIMAL"
+	Numeric         = "NUMERIC"
+	Money           = "MONEY"
+	SmallMoney      = "SMALLMONEY"
 
 	Real          = "REAL"
 	Float         = "FLOAT"
@@ -210,14 +211,15 @@ var (
 		SmallDateTime: TIME_TYPE,
 		Year:          TIME_TYPE,
 
-		Decimal:       NUMERIC_TYPE,
-		Numeric:       NUMERIC_TYPE,
-		Real:          NUMERIC_TYPE,
-		Float:         NUMERIC_TYPE,
-		UnsignedFloat: NUMERIC_TYPE,
-		Double:        NUMERIC_TYPE,
-		Money:         NUMERIC_TYPE,
-		SmallMoney:    NUMERIC_TYPE,
+		Decimal:         NUMERIC_TYPE,
+		UnsignedDecimal: NUMERIC_TYPE,
+		Numeric:         NUMERIC_TYPE,
+		Real:            NUMERIC_TYPE,
+		Float:           NUMERIC_TYPE,
+		UnsignedFloat:   NUMERIC_TYPE,
+		Double:          NUMERIC_TYPE,
+		Money:           NUMERIC_TYPE,
+		SmallMoney:      NUMERIC_TYPE,
 
 		Binary:    BLOB_TYPE,
 		VarBinary: BLOB_TYPE,
