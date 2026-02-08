@@ -43,9 +43,9 @@ func Interface2Interface(userLocation *time.Location, v any) (any, error) {
 		return nil, nil
 	case *sql.NullTime:
 		if vv.Valid {
-			return vv.Time.In(userLocation).Format("2006-01-02 15:04:05"), nil
+			return vv.Time.In(userLocation), nil
 		}
-		return "", nil
+		return nil, nil
 	default:
 		return "", fmt.Errorf("convert assign string unsupported type: %#v", vv)
 	}

@@ -111,6 +111,9 @@ func TestQueryInterface(t *testing.T) {
 	assert.Equal(t, "hi", records[0]["msg"])
 	assert.EqualValues(t, 28, records[0]["age"])
 	assert.EqualValues(t, 1.5, records[0]["money"])
+	createdAt, ok := records[0]["created"].(time.Time)
+	assert.True(t, ok)
+	assert.False(t, createdAt.IsZero())
 }
 
 func TestQueryNoParams(t *testing.T) {
