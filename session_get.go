@@ -32,6 +32,20 @@ func (session *Session) Get(beans ...any) (bool, error) {
 	return session.get(beans...)
 }
 
+// GetOrError like Get, but will return error if record not exist
+func (session *Session) GetOrError(beans ...any) error {
+	if session.isAutoClose {
+		defer session.Close()
+	}
+	exist, err := session.get(beans...)
+	if err != nil {
+		return err
+	} else if !exist {
+		return ErrNotExist
+	}
+	return nil
+}
+
 func isPtrOfTime(v any) bool {
 	if _, ok := v.(*time.Time); ok {
 		return true

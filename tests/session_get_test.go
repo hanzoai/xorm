@@ -41,7 +41,7 @@ func TestGetVar(t *testing.T) {
 		Age:   28,
 		Money: 1.5,
 	}
-	_, err := testEngine.InsertOne(&data)
+	_, err := testEngine.Insert(&data)
 	assert.NoError(t, err)
 
 	var msg string
@@ -226,6 +226,33 @@ func TestGetVar(t *testing.T) {
 	v4, err := convert.AsFloat64(valuesSliceInter[3])
 	assert.NoError(t, err)
 	assert.Equal(t, "1.5", fmt.Sprintf("%v", v4))
+}
+
+func TestGetOrError(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type GetOrErrorTable struct {
+		Id   int64  `xorm:"autoincr pk"`
+		Name string `xorm:"varchar(20)"`
+	}
+
+	assert.NoError(t, testEngine.Sync(new(GetOrErrorTable)))
+
+	data := GetOrErrorTable{
+		Name: "exist",
+	}
+	_, err := testEngine.Insert(&data)
+	assert.NoError(t, err)
+
+	var got GetOrErrorTable
+	err = testEngine.ID(data.Id).GetOrError(&got)
+	assert.NoError(t, err)
+	assert.Equal(t, data.Id, got.Id)
+	assert.Equal(t, data.Name, got.Name)
+
+	var missing GetOrErrorTable
+	err = testEngine.ID(data.Id + 1).GetOrError(&missing)
+	assert.ErrorIs(t, err, xorm.ErrNotExist)
 }
 
 func TestGetStruct(t *testing.T) {
