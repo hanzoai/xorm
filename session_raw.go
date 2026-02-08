@@ -156,26 +156,31 @@ func (session *Session) exec(sqlStr string, args ...any) (sql.Result, error) {
 	session.lastSQL = sqlStr
 	session.lastSQLArgs = args
 
-	if !session.isAutoCommit {
-		if session.prepareStmt {
-			stmt, err := session.doPrepareTx(sqlStr)
-			if err != nil {
-				return nil, err
-			}
-			return stmt.ExecContext(session.ctx, args...)
+	var (
+		res  sql.Result
+		err  error
+		stmt *core.Stmt
+	)
+	switch {
+	case !session.isAutoCommit && session.prepareStmt:
+		stmt, err = session.doPrepareTx(sqlStr)
+		if err == nil {
+			res, err = stmt.ExecContext(session.ctx, args...)
 		}
-		return session.tx.ExecContext(session.ctx, sqlStr, args...)
-	}
-
-	if session.prepareStmt {
-		stmt, err := session.doPrepare(session.DB(), sqlStr)
-		if err != nil {
-			return nil, err
+	case !session.isAutoCommit:
+		res, err = session.tx.ExecContext(session.ctx, sqlStr, args...)
+	case session.prepareStmt:
+		stmt, err = session.doPrepare(session.DB(), sqlStr)
+		if err == nil {
+			res, err = stmt.ExecContext(session.ctx, args...)
 		}
-		return stmt.ExecContext(session.ctx, args...)
+	default:
+		res, err = session.DB().ExecContext(session.ctx, sqlStr, args...)
 	}
-
-	return session.DB().ExecContext(session.ctx, sqlStr, args...)
+	if err != nil {
+		cleanupProcessorsClosures(&session.afterClosures)
+	}
+	return res, err
 }
 
 // Exec raw sql

@@ -162,6 +162,43 @@ func TestInsert(t *testing.T) {
 	assert.EqualValues(t, 0, cnt, "insert not returned 1")
 }
 
+func TestInsertErrorAfterClosureCleanup(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type InsertAfterClosureA struct {
+		Id        int64 `xorm:"pk autoincr"`
+		Amount    int64
+		UpdatedAt int64 `xorm:"updated"`
+	}
+
+	type InsertAfterClosureB struct {
+		Id        int64  `xorm:"pk autoincr"`
+		UpdatedAt int64  `xorm:"updated"`
+		Code      string `xorm:"unique"`
+	}
+
+	assert.NoError(t, testEngine.Sync(new(InsertAfterClosureA), new(InsertAfterClosureB)))
+
+	seed := &InsertAfterClosureA{Amount: 42}
+	_, err := testEngine.Insert(seed)
+	assert.NoError(t, err)
+
+	session := testEngine.NewSession()
+	defer session.Close()
+
+	_, err = session.Insert(&InsertAfterClosureB{Code: "dup"})
+	assert.NoError(t, err)
+
+	_, err = session.Insert(&InsertAfterClosureB{Code: "dup"})
+	assert.Error(t, err)
+
+	var loaded InsertAfterClosureA
+	has, err := session.ID(seed.Id).Get(&loaded)
+	assert.NoError(t, err)
+	assert.True(t, has)
+	assert.Equal(t, seed.Amount, loaded.Amount)
+}
+
 func TestInsertAutoIncr(t *testing.T) {
 	assert.NoError(t, PrepareEngine())
 	assertSync(t, new(Userinfo))
