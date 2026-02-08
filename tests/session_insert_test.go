@@ -29,7 +29,7 @@ func TestInsertOne(t *testing.T) {
 	assert.NoError(t, testEngine.Sync(new(Test)))
 
 	data := Test{Msg: "hi"}
-	_, err := testEngine.InsertOne(data)
+	_, err := testEngine.Insert(data)
 	assert.NoError(t, err)
 }
 
@@ -119,7 +119,7 @@ func TestInsertOneIfPkIsPoint(t *testing.T) {
 	assert.NoError(t, testEngine.Sync(new(TestPoint)))
 	msg := "hi"
 	data := TestPoint{Msg: &msg}
-	_, err := testEngine.InsertOne(&data)
+	_, err := testEngine.Insert(&data)
 	assert.NoError(t, err)
 }
 
@@ -135,7 +135,7 @@ func TestInsertOneIfPkIsPointRename(t *testing.T) {
 	assert.NoError(t, testEngine.Sync(new(TestPoint2)))
 	msg := "hi"
 	data := TestPoint2{Msg: &msg}
-	_, err := testEngine.InsertOne(&data)
+	_, err := testEngine.Insert(&data)
 	assert.NoError(t, err)
 }
 

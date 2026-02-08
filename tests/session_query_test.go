@@ -35,7 +35,7 @@ func TestQueryString(t *testing.T) {
 		Age:   28,
 		Money: 1.5,
 	}
-	_, err := testEngine.InsertOne(data)
+	_, err := testEngine.Insert(data)
 	assert.NoError(t, err)
 
 	records, err := testEngine.QueryString("select * from " + testEngine.Quote(testEngine.TableName("get_var2", true)))
@@ -100,7 +100,7 @@ func TestQueryInterface(t *testing.T) {
 		Age:   28,
 		Money: 1.5,
 	}
-	_, err := testEngine.InsertOne(data)
+	_, err := testEngine.Insert(data)
 	assert.NoError(t, err)
 
 	records, err := testEngine.QueryInterface("select * from " + testEngine.Quote(testEngine.TableName("get_var_interface", true)))
