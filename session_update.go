@@ -262,7 +262,10 @@ func (session *Session) genUpdateColumns(bean any) ([]string, []any, error) {
 			continue
 		}
 
-		if (col.IsDeleted && !session.statement.GetUnscoped()) || col.IsCreated {
+		if col.IsDeleted && !session.statement.GetUnscoped() {
+			continue
+		}
+		if col.IsCreated && !session.statement.ColumnMap.Contain(col.Name) {
 			continue
 		}
 

@@ -64,6 +64,47 @@ func TestUpdateMap(t *testing.T) {
 	}
 }
 
+func TestUpdateCreatedColumnNoAutoTime(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type UpdateCreated struct {
+		ID          int64 `xorm:"pk autoincr"`
+		Name        string
+		CreatedUnix int64 `xorm:"created"`
+	}
+
+	assertSync(t, new(UpdateCreated))
+
+	item := UpdateCreated{
+		Name: "first",
+	}
+	_, err := testEngine.Insert(&item)
+	assert.NoError(t, err)
+
+	var got UpdateCreated
+	has, err := testEngine.ID(item.ID).Get(&got)
+	assert.NoError(t, err)
+	assert.True(t, has)
+	assert.NotZero(t, got.CreatedUnix)
+
+	updatedCreated := got.CreatedUnix - 3600
+	if updatedCreated <= 0 {
+		updatedCreated = got.CreatedUnix + 3600
+	}
+
+	cnt, err := testEngine.ID(item.ID).Cols("created_unix").NoAutoTime().Update(&UpdateCreated{
+		CreatedUnix: updatedCreated,
+	})
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, cnt)
+
+	var updated UpdateCreated
+	has, err = testEngine.ID(item.ID).Get(&updated)
+	assert.NoError(t, err)
+	assert.True(t, has)
+	assert.EqualValues(t, updatedCreated, updated.CreatedUnix)
+}
+
 func TestUpdateLimit(t *testing.T) {
 	if *ingoreUpdateLimit {
 		t.Skip()
