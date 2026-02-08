@@ -467,6 +467,36 @@ func TestGetActionMapping(t *testing.T) {
 	assert.EqualValues(t, "", valuesSlice[1])
 }
 
+func TestGetDeletedColumnForNonStruct(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type DeletedGetStruct struct {
+		Id        int64 `xorm:"pk autoincr"`
+		Name      string
+		DeletedAt time.Time `xorm:"deleted"`
+	}
+
+	assertSync(t, new(DeletedGetStruct))
+
+	bean := &DeletedGetStruct{Name: "first"}
+	_, err := testEngine.Insert(bean)
+	assert.NoError(t, err)
+
+	_, err = testEngine.ID(bean.Id).Delete(new(DeletedGetStruct))
+	assert.NoError(t, err)
+
+	var id int64
+	has, err := testEngine.Table(new(DeletedGetStruct)).Select("id").Get(&id)
+	assert.NoError(t, err)
+	assert.False(t, has)
+	assert.EqualValues(t, 0, id)
+
+	var ids []int64
+	err = testEngine.Table(new(DeletedGetStruct)).Select("id").Limit(10).Find(&ids)
+	assert.NoError(t, err)
+	assert.Empty(t, ids)
+}
+
 func TestGetStructId(t *testing.T) {
 	type TestGetStruct struct {
 		Id int64
