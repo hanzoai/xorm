@@ -71,6 +71,36 @@ func TestBefore_Find(t *testing.T) {
 	assert.Equal(t, "test2", be[1].Name)
 }
 
+func TestAfterClosures(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type AfterClosuresTable struct {
+		Id    int64
+		Name  string
+		Flag1 bool `xorm:"-"`
+		Flag2 bool `xorm:"-"`
+	}
+
+	assert.NoError(t, testEngine.Sync(new(AfterClosuresTable)))
+
+	cnt, err := testEngine.Insert(&AfterClosuresTable{
+		Name: "test",
+	})
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, cnt)
+
+	var after AfterClosuresTable
+	has, err := testEngine.After(func(bean any) {
+		bean.(*AfterClosuresTable).Flag1 = true
+	}).After(func(bean any) {
+		bean.(*AfterClosuresTable).Flag2 = true
+	}).Get(&after)
+	assert.NoError(t, err)
+	assert.True(t, has)
+	assert.True(t, after.Flag1)
+	assert.True(t, after.Flag2)
+}
+
 type ProcessorsStruct struct {
 	Id int64
 
