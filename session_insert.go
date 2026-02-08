@@ -88,11 +88,12 @@ func (session *Session) insertMultipleStruct(rowsSlicePtr any) (int64, error) {
 	}
 
 	var (
-		table          = session.statement.RefTable
-		size           = sliceValue.Len()
-		colNames       []string
-		colMultiPlaces []string
-		args           []any
+		table              = session.statement.RefTable
+		size               = sliceValue.Len()
+		colNames           []string
+		colMultiPlaces     []string
+		args               []any
+		autoInsertClosures []func(any)
 	)
 
 	for i := 0; i < size; i++ {
@@ -161,14 +162,14 @@ func (session *Session) insertMultipleStruct(rowsSlicePtr any) (int64, error) {
 				args = append(args, val)
 
 				colName := col.Name
-				session.afterClosures = append(session.afterClosures, func(bean any) {
+				autoInsertClosures = append(autoInsertClosures, func(bean any) {
 					col := table.GetColumn(colName)
 					setColumnTime(bean, col, t)
 				})
 			case col.IsVersion && session.statement.CheckVersion:
 				args = append(args, 1)
 				colName := col.Name
-				session.afterClosures = append(session.afterClosures, func(bean any) {
+				autoInsertClosures = append(autoInsertClosures, func(bean any) {
 					col := table.GetColumn(colName)
 					setColumnInt(bean, col, 1)
 				})
@@ -201,6 +202,13 @@ func (session *Session) insertMultipleStruct(rowsSlicePtr any) (int64, error) {
 	}
 
 	session.cacheInsert(tableName)
+
+	for i := 0; i < size; i++ {
+		elemValue := reflect.Indirect(sliceValue.Index(i)).Addr().Interface()
+		for _, closure := range autoInsertClosures {
+			closure(elemValue)
+		}
+	}
 
 	lenAfterClosures := len(session.afterClosures)
 	for i := 0; i < size; i++ {
@@ -273,7 +281,7 @@ func (session *Session) insertStruct(bean any) (int64, error) {
 	tableName := session.statement.TableName()
 	table := session.statement.RefTable
 
-	colNames, args, err := session.genInsertColumns(bean)
+	colNames, args, autoInsertClosures, err := session.genInsertColumns(bean)
 	if err != nil {
 		return 0, err
 	}
@@ -283,6 +291,12 @@ func (session *Session) insertStruct(bean any) (int64, error) {
 		return 0, err
 	}
 	sqlStr = session.engine.dialect.Quoter().Replace(sqlStr)
+
+	applyAutoInsertClosures := func() {
+		for _, closure := range autoInsertClosures {
+			closure(bean)
+		}
+	}
 
 	handleAfterInsertProcessorFunc := func(bean any) {
 		if session.isAutoCommit {
@@ -353,6 +367,7 @@ func (session *Session) insertStruct(bean any) (int64, error) {
 				return 0, err
 			}
 		}
+		applyAutoInsertClosures()
 		if id == 0 {
 			return 0, errors.New("insert successfully but not returned id")
 		}
@@ -386,6 +401,7 @@ func (session *Session) insertStruct(bean any) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	applyAutoInsertClosures()
 
 	defer handleAfterInsertProcessorFunc(bean)
 
@@ -451,10 +467,11 @@ func (session *Session) cacheInsert(table string) {
 }
 
 // genInsertColumns generates insert needed columns
-func (session *Session) genInsertColumns(bean any) ([]string, []any, error) {
+func (session *Session) genInsertColumns(bean any) ([]string, []any, []func(any), error) {
 	table := session.statement.RefTable
 	colNames := make([]string, 0, len(table.ColumnsSeq()))
 	args := make([]any, 0, len(table.ColumnsSeq()))
+	autoInsertClosures := make([]func(any), 0)
 
 	for _, col := range table.Columns() {
 		if col.MapType == schemas.ONLYFROMDB {
@@ -479,7 +496,7 @@ func (session *Session) genInsertColumns(bean any) ([]string, []any, error) {
 			zeroTime := time.Date(1, 1, 1, 0, 0, 0, 0, session.engine.DatabaseTZ)
 			arg, err := dialects.FormatColumnTime(session.engine.dialect, session.engine.DatabaseTZ, col, zeroTime)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, nil, err
 			}
 			args = append(args, arg)
 			colNames = append(colNames, col.Name)
@@ -488,7 +505,7 @@ func (session *Session) genInsertColumns(bean any) ([]string, []any, error) {
 
 		fieldValuePtr, err := col.ValueOf(bean)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 		fieldValue := *fieldValuePtr
 
@@ -509,12 +526,12 @@ func (session *Session) genInsertColumns(bean any) ([]string, []any, error) {
 			// if time is non-empty, then set to auto time
 			val, t, err := session.engine.nowTime(col)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, nil, err
 			}
 			args = append(args, val)
 
 			colName := col.Name
-			session.afterClosures = append(session.afterClosures, func(bean any) {
+			autoInsertClosures = append(autoInsertClosures, func(bean any) {
 				col := table.GetColumn(colName)
 				setColumnTime(bean, col, t)
 			})
@@ -523,14 +540,14 @@ func (session *Session) genInsertColumns(bean any) ([]string, []any, error) {
 		default:
 			arg, err := session.statement.Value2Interface(col, fieldValue)
 			if err != nil {
-				return colNames, args, err
+				return colNames, args, nil, err
 			}
 			args = append(args, arg)
 		}
 
 		colNames = append(colNames, col.Name)
 	}
-	return colNames, args, nil
+	return colNames, args, autoInsertClosures, nil
 }
 
 func (session *Session) insertMapInterface(m map[string]any) (int64, error) {

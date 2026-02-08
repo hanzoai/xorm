@@ -88,6 +88,7 @@ func (session *Session) Update(bean any, condiBean ...any) (int64, error) {
 
 	var colNames []string
 	var args []any
+	var autoUpdateClosures []func(any)
 	var err error
 	isMap := t.Kind() == reflect.Map
 	isStruct := t.Kind() == reflect.Struct
@@ -105,7 +106,7 @@ func (session *Session) Update(bean any, condiBean ...any) (int64, error) {
 			colNames, args, err = session.statement.BuildUpdates(v, false, false,
 				false, false, true)
 		} else {
-			colNames, args, err = session.genUpdateColumns(bean)
+			colNames, args, autoUpdateClosures, err = session.genUpdateColumns(bean)
 		}
 		if err != nil {
 			return 0, err
@@ -142,7 +143,7 @@ func (session *Session) Update(bean any, condiBean ...any) (int64, error) {
 
 			colName := col.Name
 			if isStruct {
-				session.afterClosures = append(session.afterClosures, func(bean any) {
+				autoUpdateClosures = append(autoUpdateClosures, func(bean any) {
 					col := table.GetColumn(colName)
 					setColumnTime(bean, col, t)
 				})
@@ -198,6 +199,11 @@ func (session *Session) Update(bean any, condiBean ...any) (int64, error) {
 			session.incrVersionFieldValue(verValue)
 		}
 	}
+	if isStruct {
+		for _, closure := range autoUpdateClosures {
+			closure(bean)
+		}
+	}
 
 	if cacher := session.engine.GetCacher(tableName); cacher != nil && useCache {
 		session.engine.logger.Debugf("[cache] clear table: %v", tableName)
@@ -237,10 +243,11 @@ func (session *Session) Update(bean any, condiBean ...any) (int64, error) {
 	return res.RowsAffected()
 }
 
-func (session *Session) genUpdateColumns(bean any) ([]string, []any, error) {
+func (session *Session) genUpdateColumns(bean any) ([]string, []any, []func(any), error) {
 	table := session.statement.RefTable
 	colNames := make([]string, 0, len(table.ColumnsSeq()))
 	args := make([]any, 0, len(table.ColumnsSeq()))
+	autoUpdateClosures := make([]func(any), 0)
 
 	for _, col := range table.Columns() {
 		if !col.IsVersion && !col.IsCreated && !col.IsUpdated {
@@ -254,7 +261,7 @@ func (session *Session) genUpdateColumns(bean any) ([]string, []any, error) {
 
 		fieldValuePtr, err := col.ValueOf(bean)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 		fieldValue := *fieldValuePtr
 
@@ -296,12 +303,12 @@ func (session *Session) genUpdateColumns(bean any) ([]string, []any, error) {
 			// if time is non-empty, then set to auto time
 			val, t, err := session.engine.nowTime(col)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, nil, err
 			}
 			args = append(args, val)
 
 			colName := col.Name
-			session.afterClosures = append(session.afterClosures, func(bean any) {
+			autoUpdateClosures = append(autoUpdateClosures, func(bean any) {
 				col := table.GetColumn(colName)
 				setColumnTime(bean, col, t)
 			})
@@ -310,12 +317,12 @@ func (session *Session) genUpdateColumns(bean any) ([]string, []any, error) {
 		default:
 			arg, err := session.statement.Value2Interface(col, fieldValue)
 			if err != nil {
-				return colNames, args, err
+				return colNames, args, nil, err
 			}
 			args = append(args, arg)
 		}
 
 		colNames = append(colNames, session.engine.Quote(col.Name)+" = ?")
 	}
-	return colNames, args, nil
+	return colNames, args, autoUpdateClosures, nil
 }

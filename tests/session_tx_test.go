@@ -216,3 +216,31 @@ func TestInsertMulti2InterfaceTransaction(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestTransactionInsertAutoTime(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	type TransactionAutoTime struct {
+		ID      int64 `xorm:"pk autoincr"`
+		Name    string
+		Created time.Time `xorm:"created"`
+		Updated time.Time `xorm:"updated"`
+	}
+
+	assertSync(t, new(TransactionAutoTime))
+
+	session := testEngine.NewSession()
+	defer session.Close()
+
+	err := session.Begin()
+	assert.NoError(t, err)
+
+	item := &TransactionAutoTime{Name: "tx"}
+	_, err = session.Insert(item)
+	assert.NoError(t, err)
+	assert.False(t, item.Created.IsZero())
+	assert.False(t, item.Updated.IsZero())
+
+	err = session.Rollback()
+	assert.NoError(t, err)
+}
