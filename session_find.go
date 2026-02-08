@@ -56,6 +56,24 @@ func (session *Session) FindAndCount(rowsSlicePtr any, condiBean ...any) (int64,
 	}
 	session.autoResetStatement = true
 
+	rowCount := int64(sliceValue.Len())
+	limit := session.statement.LimitN
+	if limit == nil && session.statement.Start == 0 {
+		session.resetStatement()
+		return rowCount, nil
+	}
+
+	if limit != nil && *limit > 0 {
+		if rowCount < int64(*limit) && (session.statement.Start == 0 || rowCount > 0) {
+			total := rowCount
+			if session.statement.Start > 0 {
+				total += int64(session.statement.Start)
+			}
+			session.resetStatement()
+			return total, nil
+		}
+	}
+
 	if session.statement.SelectStr != "" {
 		session.statement.SelectStr = ""
 	}
