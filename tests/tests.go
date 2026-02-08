@@ -66,7 +66,7 @@ func createEngine(dbType, connStr string) error {
 				}
 				db.Close()
 				*ignoreSelectUpdate = true
-			case schemas.POSTGRES:
+			case schemas.POSTGRES, "pgx":
 				db, err := sql.Open(dbType, strings.ReplaceAll(connStr, "xorm_test", "postgres"))
 				if err != nil {
 					return err
@@ -94,7 +94,6 @@ func createEngine(dbType, connStr string) error {
 					}
 				}
 				db.Close()
-				*ignoreSelectUpdate = true
 			case schemas.MYSQL:
 				db, err := sql.Open(dbType, strings.ReplaceAll(connStr, "xorm_test", "mysql"))
 				if err != nil {
@@ -118,7 +117,8 @@ func createEngine(dbType, connStr string) error {
 			testEngine, err = xorm.NewEngine(dbType, connStr)
 		} else {
 			testEngine, err = xorm.NewEngineGroup(dbType, strings.Split(connStr, *splitter))
-			if dbType != "mysql" && dbType != "mymysql" {
+			if !strings.EqualFold(dbType, "mysql") && !strings.EqualFold(dbType, "mymysql") &&
+				!strings.EqualFold(dbType, "postgres") && !strings.EqualFold(dbType, "pgx") {
 				*ignoreSelectUpdate = true
 			}
 		}
