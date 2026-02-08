@@ -80,6 +80,7 @@ type EngineInterface interface {
 	Interface
 
 	Before(func(any)) *Session
+	After(func(any)) *Session
 	Charset(charset string) *Session
 	ClearCache(...any) error
 	Context(context.Context) *Session

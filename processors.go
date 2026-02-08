@@ -110,9 +110,10 @@ func executeAfterSet(bean any, fields []string, scanResults []any) {
 func buildAfterProcessors(session *Session, bean any) {
 	// handle afterClosures
 	for _, closure := range session.afterClosures {
+		afterClosure := closure
 		session.afterProcessors = append(session.afterProcessors, executedProcessor{
 			fun: func(sess *Session, bean any) error {
-				closure(bean)
+				afterClosure(bean)
 				return nil
 			},
 			session: session,
