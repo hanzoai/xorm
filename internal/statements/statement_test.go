@@ -97,6 +97,30 @@ func TestConvertSQLOrArgs(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+type AliasTime time.Time
+
+func TestConvertSQLOrArgsWithAliasTime(t *testing.T) {
+	statement, err := createTestStatement()
+	assert.NoError(t, err)
+	statement.defaultTimeZone = time.UTC
+
+	value := AliasTime(time.Date(2024, time.January, 2, 3, 4, 5, 0, time.UTC))
+	expected := "2024-01-02 03:04:05"
+
+	_, args, err := statement.convertSQLOrArgs("SELECT * FROM test WHERE updated_at = ?", value)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, args[0])
+
+	_, args, err = statement.convertSQLOrArgs("SELECT * FROM test WHERE updated_at = ?", &value)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, args[0])
+
+	var nilValue *AliasTime
+	_, args, err = statement.convertSQLOrArgs("SELECT * FROM test WHERE updated_at = ?", nilValue)
+	assert.NoError(t, err)
+	assert.Nil(t, args[0])
+}
+
 func BenchmarkGetFlagForColumnWithICKey_ContainsKey(b *testing.B) {
 	b.StopTimer()
 
