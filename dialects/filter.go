@@ -31,51 +31,94 @@ func postgresSeqFilterConvertQuestionMark(sql, prefix string, start int) string 
 	var isMaybeComment bool
 	var isMaybeCommentEnd bool
 	var isMaybeJsonbQuestion bool
+	var inDollarQuote bool
+	var dollarQuoteTag string
 	index := start
-	for i, c := range sql {
+	for i := 0; i < len(sql); i++ {
+		c := sql[i]
+		if inDollarQuote {
+			if c == '$' && strings.HasPrefix(sql[i:], dollarQuoteTag) {
+				buf.WriteString(dollarQuoteTag)
+				i += len(dollarQuoteTag) - 1
+				inDollarQuote = false
+				continue
+			}
+			buf.WriteByte(c)
+			continue
+		}
 		if !beginSingleQuote && !isLineComment && !isComment && !isMaybeJsonbQuestion && c == '?' {
 			buf.WriteString(fmt.Sprintf("%s%v", prefix, index))
 			index++
-		} else {
-			switch {
-			case isMaybeJsonbQuestion && c == '?':
-				isMaybeJsonbQuestion = false
-			case isMaybeLineComment:
-				if c == '-' {
-					isLineComment = true
-				}
-				isMaybeLineComment = false
-			case isMaybeComment:
-				if c == '*' {
-					isComment = true
-				}
-				isMaybeComment = false
-			case isMaybeCommentEnd:
-				if c == '/' {
-					isComment = false
-				}
-				isMaybeCommentEnd = false
-			case isLineComment:
-				if c == '\n' {
-					isLineComment = false
-				}
-			case isComment:
-				if c == '*' {
-					isMaybeCommentEnd = true
-				}
-			case !beginSingleQuote && c == '-':
-				isMaybeLineComment = true
-			case !beginSingleQuote && c == '/':
-				isMaybeComment = true
-			case !beginSingleQuote && c == ' ' && i >= 7 && strings.TrimSpace(sql[i-7:i]) == "::jsonb":
-				isMaybeJsonbQuestion = true
-			case c == '\'':
-				beginSingleQuote = !beginSingleQuote
-			}
-			buf.WriteRune(c)
+			continue
 		}
+		switch {
+		case isMaybeJsonbQuestion && c == '?':
+			isMaybeJsonbQuestion = false
+		case isMaybeLineComment:
+			if c == '-' {
+				isLineComment = true
+			}
+			isMaybeLineComment = false
+		case isMaybeComment:
+			if c == '*' {
+				isComment = true
+			}
+			isMaybeComment = false
+		case isMaybeCommentEnd:
+			if c == '/' {
+				isComment = false
+			}
+			isMaybeCommentEnd = false
+		case isLineComment:
+			if c == '\n' {
+				isLineComment = false
+			}
+		case isComment:
+			if c == '*' {
+				isMaybeCommentEnd = true
+			}
+		case !beginSingleQuote && c == '-':
+			isMaybeLineComment = true
+		case !beginSingleQuote && c == '/':
+			isMaybeComment = true
+		case !beginSingleQuote && c == ' ' && i >= 7 && strings.TrimSpace(sql[i-7:i]) == "::jsonb":
+			isMaybeJsonbQuestion = true
+		case !beginSingleQuote && c == '$':
+			if tag, ok := extractDollarQuoteTag(sql, i); ok {
+				buf.WriteString(tag)
+				i += len(tag) - 1
+				inDollarQuote = true
+				dollarQuoteTag = tag
+				continue
+			}
+		case c == '\'':
+			beginSingleQuote = !beginSingleQuote
+		}
+		buf.WriteByte(c)
 	}
 	return buf.String()
+}
+
+func extractDollarQuoteTag(sql string, start int) (string, bool) {
+	if start >= len(sql) || sql[start] != '$' {
+		return "", false
+	}
+	for i := start + 1; i < len(sql); i++ {
+		switch {
+		case sql[i] == '$':
+			return sql[start : i+1], true
+		case !isDollarQuoteTagChar(sql[i]):
+			return "", false
+		}
+	}
+	return "", false
+}
+
+func isDollarQuoteTagChar(c byte) bool {
+	return (c >= 'a' && c <= 'z') ||
+		(c >= 'A' && c <= 'Z') ||
+		(c >= '0' && c <= '9') ||
+		c == '_'
 }
 
 // Do implements Filter

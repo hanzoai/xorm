@@ -82,6 +82,25 @@ func TestSeqFilterPostgresQuestions(t *testing.T) {
 		`SELECT '{"a":1, "b":2}'::jsonb ? 'b'
 		FROM table1 WHERE c = ?`: `SELECT '{"a":1, "b":2}'::jsonb ? 'b'
 		FROM table1 WHERE c = $1`,
+		`CREATE FUNCTION _example_function(table_name text, config jsonb)
+		RETURNS jsonb
+		AS $$
+		BEGIN
+			IF NOT config #> array['tables'] ? table_name THEN
+				RETURN config;
+			END IF;
+		END;
+		$$ LANGUAGE plpgsql;
+		SELECT * FROM table1 WHERE c = ?`: `CREATE FUNCTION _example_function(table_name text, config jsonb)
+		RETURNS jsonb
+		AS $$
+		BEGIN
+			IF NOT config #> array['tables'] ? table_name THEN
+				RETURN config;
+			END IF;
+		END;
+		$$ LANGUAGE plpgsql;
+		SELECT * FROM table1 WHERE c = $1`,
 	}
 	for sql, result := range kases {
 		assert.EqualValues(t, result, postgresSeqFilterConvertQuestionMark(sql, "$", 1))
