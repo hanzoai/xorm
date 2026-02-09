@@ -7,6 +7,7 @@ package tests
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"xorm.io/xorm"
@@ -119,6 +120,35 @@ type ProcessorsStruct struct {
 	B4DeleteViaExt      int `xorm:"-"`
 	AfterDeletedViaExt  int `xorm:"-"`
 	AfterSetFlag        int `xorm:"-"`
+}
+
+type AfterLoadSessionTable struct {
+	Id      int64
+	Name    string
+	LastSQL string `xorm:"-"`
+}
+
+func (AfterLoadSessionTable) TableName() string {
+	return "after_load_session_table"
+}
+
+func (t *AfterLoadSessionTable) AfterLoad(sess *xorm.Session) {
+	var target AfterLoadSessionTarget
+	if _, err := sess.Where("name = ?", "second").Get(&target); err != nil {
+		t.LastSQL = err.Error()
+		return
+	}
+	lastSQL, _ := sess.LastSQL()
+	t.LastSQL = lastSQL
+}
+
+type AfterLoadSessionTarget struct {
+	Id   int64
+	Name string
+}
+
+func (AfterLoadSessionTarget) TableName() string {
+	return "after_load_session_table"
 }
 
 func (p *ProcessorsStruct) BeforeInsert() {
@@ -912,6 +942,35 @@ func TestAfterLoadProcessor(t *testing.T) {
 		assert.EqualValues(t, a.Content, bs[i].A.Content)
 		assert.NoError(t, bs[i].Err)
 	}
+}
+
+func TestAfterLoadSessionProcessorResetsStatement(t *testing.T) {
+	assert.NoError(t, PrepareEngine())
+
+	assertSync(t, new(AfterLoadSessionTable))
+
+	first := AfterLoadSessionTable{Name: "first"}
+	_, err := testEngine.Insert(&first)
+	assert.NoError(t, err)
+
+	_, err = testEngine.Insert(&AfterLoadSessionTable{Name: "second"})
+	assert.NoError(t, err)
+
+	var loaded AfterLoadSessionTable
+	has, err := testEngine.ID(first.Id).Get(&loaded)
+	assert.NoError(t, err)
+	assert.True(t, has)
+
+	whereIndex := strings.Index(strings.ToLower(loaded.LastSQL), "where")
+	if whereIndex == -1 {
+		t.Fatalf("expected WHERE clause in SQL: %s", loaded.LastSQL)
+	}
+	whereClause := strings.ToLower(loaded.LastSQL[whereIndex:])
+	if orderIndex := strings.Index(whereClause, "order by"); orderIndex != -1 {
+		whereClause = whereClause[:orderIndex]
+	}
+	assert.Contains(t, whereClause, "name")
+	assert.NotContains(t, whereClause, "id")
 }
 
 type AfterInsertStruct struct {

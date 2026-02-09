@@ -69,6 +69,7 @@ func (executor *executedProcessor) execute() error {
 func (session *Session) executeProcessors() error {
 	processors := session.afterProcessors
 	session.afterProcessors = make([]executedProcessor, 0)
+	session.resetStatement()
 	for _, processor := range processors {
 		if err := processor.execute(); err != nil {
 			return err
