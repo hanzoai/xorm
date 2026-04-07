@@ -8,9 +8,9 @@ import (
 	"errors"
 	"strconv"
 
-	"xorm.io/builder"
-	"xorm.io/xorm/caches"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/builder"
+	"github.com/hanzoai/xorm/caches"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 // ErrNeedDeletedCond delete needs less one condition error

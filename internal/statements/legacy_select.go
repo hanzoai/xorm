@@ -5,7 +5,7 @@
 package statements
 
 import (
-	"xorm.io/builder"
+	"github.com/hanzoai/builder"
 )
 
 // isUsingLegacy returns true if xorm uses legacy LIMIT OFFSET.

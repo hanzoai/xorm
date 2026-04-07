@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"xorm.io/xorm/core"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/xorm/core"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 // URI represents an uri to visit database

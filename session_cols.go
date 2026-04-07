@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 func setColumnInt(bean any, col *schemas.Column, t int64) {

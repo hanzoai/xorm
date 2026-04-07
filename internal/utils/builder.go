@@ -7,7 +7,7 @@ package utils
 import (
 	"fmt"
 
-	"xorm.io/builder"
+	"github.com/hanzoai/builder"
 )
 
 type BuildReader interface {

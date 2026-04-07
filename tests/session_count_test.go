@@ -9,8 +9,8 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
-	"xorm.io/builder"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/builder"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 func TestCount(t *testing.T) {

@@ -16,13 +16,13 @@ import (
 	"reflect"
 	"strconv"
 
-	"xorm.io/xorm/contexts"
-	"xorm.io/xorm/convert"
-	"xorm.io/xorm/core"
-	"xorm.io/xorm/internal/json"
-	"xorm.io/xorm/internal/statements"
-	"xorm.io/xorm/log"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/xorm/contexts"
+	"github.com/hanzoai/xorm/convert"
+	"github.com/hanzoai/xorm/core"
+	"github.com/hanzoai/xorm/internal/json"
+	"github.com/hanzoai/xorm/internal/statements"
+	"github.com/hanzoai/xorm/log"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 // ErrFieldIsNotExist columns does not exist

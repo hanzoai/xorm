@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"xorm.io/builder"
-	"xorm.io/xorm/dialects"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/builder"
+	"github.com/hanzoai/xorm/dialects"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 func newTestStatement(t *testing.T, dbType schemas.DBType) *Statement {

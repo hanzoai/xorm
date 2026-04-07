@@ -12,8 +12,8 @@ import (
 	"os"
 	"strings"
 
-	"xorm.io/xorm/dialects"
-	"xorm.io/xorm/internal/utils"
+	"github.com/hanzoai/xorm/dialects"
+	"github.com/hanzoai/xorm/internal/utils"
 )
 
 // Ping test if database is ok

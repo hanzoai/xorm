@@ -7,10 +7,10 @@ package xorm
 import (
 	"reflect"
 
-	"xorm.io/builder"
-	"xorm.io/xorm/internal/statements"
-	"xorm.io/xorm/internal/utils"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/builder"
+	"github.com/hanzoai/xorm/internal/statements"
+	"github.com/hanzoai/xorm/internal/utils"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 // enumerated all errors

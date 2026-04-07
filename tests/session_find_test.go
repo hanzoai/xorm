@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"xorm.io/builder"
-	"xorm.io/xorm"
-	"xorm.io/xorm/internal/utils"
-	"xorm.io/xorm/names"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/builder"
+	"github.com/hanzoai/xorm"
+	"github.com/hanzoai/xorm/internal/utils"
+	"github.com/hanzoai/xorm/names"
+	"github.com/hanzoai/xorm/schemas"
 
 	"github.com/stretchr/testify/assert"
 )

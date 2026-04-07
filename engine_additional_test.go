@@ -8,12 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"xorm.io/xorm/caches"
-	"xorm.io/xorm/core"
-	"xorm.io/xorm/dialects"
-	"xorm.io/xorm/log"
-	"xorm.io/xorm/names"
-	"xorm.io/xorm/tags"
+	"github.com/hanzoai/xorm/caches"
+	"github.com/hanzoai/xorm/core"
+	"github.com/hanzoai/xorm/dialects"
+	"github.com/hanzoai/xorm/log"
+	"github.com/hanzoai/xorm/names"
+	"github.com/hanzoai/xorm/tags"
 )
 
 type engineTestLogger struct {

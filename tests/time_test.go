@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"xorm.io/xorm/convert"
+	"github.com/hanzoai/xorm/convert"
 
-	"xorm.io/xorm/internal/utils"
+	"github.com/hanzoai/xorm/internal/utils"
 
 	"github.com/stretchr/testify/assert"
 )

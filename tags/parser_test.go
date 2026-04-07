@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"xorm.io/xorm/caches"
-	"xorm.io/xorm/dialects"
-	"xorm.io/xorm/names"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/xorm/caches"
+	"github.com/hanzoai/xorm/dialects"
+	"github.com/hanzoai/xorm/names"
+	"github.com/hanzoai/xorm/schemas"
 
 	"github.com/stretchr/testify/assert"
 )

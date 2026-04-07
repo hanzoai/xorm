@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"xorm.io/xorm/convert"
+	"github.com/hanzoai/xorm/convert"
 
 	"github.com/stretchr/testify/assert"
 )

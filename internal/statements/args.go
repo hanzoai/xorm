@@ -8,8 +8,8 @@ import (
 	"database/sql/driver"
 	"fmt"
 
-	"xorm.io/builder"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/builder"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 type DateTimeString struct {

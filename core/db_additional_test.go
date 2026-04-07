@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"xorm.io/xorm/log"
+	"github.com/hanzoai/xorm/log"
 )
 
 type testLogger struct {

@@ -1,4 +1,4 @@
-module xorm.io/xorm
+module github.com/hanzoai/xorm
 
 go 1.20
 
@@ -15,7 +15,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/ziutek/mymysql v1.5.4
 	modernc.org/sqlite v1.20.4
-	xorm.io/builder v0.3.13
+	github.com/hanzoai/builder v0.3.13
 )
 
 require (

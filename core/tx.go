@@ -8,7 +8,7 @@ import (
 	"context"
 	"database/sql"
 
-	"xorm.io/xorm/contexts"
+	"github.com/hanzoai/xorm/contexts"
 )
 
 var _ QueryExecuter = &Tx{}

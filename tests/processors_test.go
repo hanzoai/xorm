@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"xorm.io/xorm"
+	"github.com/hanzoai/xorm"
 
 	"github.com/stretchr/testify/assert"
 )

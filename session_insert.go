@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"xorm.io/builder"
-	"xorm.io/xorm/convert"
-	"xorm.io/xorm/dialects"
-	"xorm.io/xorm/internal/utils"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/builder"
+	"github.com/hanzoai/xorm/convert"
+	"github.com/hanzoai/xorm/dialects"
+	"github.com/hanzoai/xorm/internal/utils"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 // ErrNoElementsOnSlice represents an error there is no element when insert

@@ -13,8 +13,8 @@ import (
 	"strings"
 	"unicode"
 
-	"xorm.io/xorm/core"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/xorm/core"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 var (
