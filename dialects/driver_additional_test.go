@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"xorm.io/xorm/core"
+	"github.com/hanzoai/xorm/core"
 )
 
 type mockDriver struct{}

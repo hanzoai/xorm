@@ -13,9 +13,9 @@ import (
 	"regexp"
 	"sync"
 
-	"xorm.io/xorm/contexts"
-	"xorm.io/xorm/log"
-	"xorm.io/xorm/names"
+	"github.com/hanzoai/xorm/contexts"
+	"github.com/hanzoai/xorm/log"
+	"github.com/hanzoai/xorm/names"
 )
 
 // DefaultCacheSize sets the default cache size

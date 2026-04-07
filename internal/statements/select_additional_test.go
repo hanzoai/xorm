@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 func TestSelectAndColumnStr(t *testing.T) {
