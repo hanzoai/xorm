@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"xorm.io/builder"
-	"xorm.io/xorm/core"
+	"github.com/hanzoai/builder"
+	"github.com/hanzoai/xorm/core"
 )
 
 // Rows rows wrapper a rows to

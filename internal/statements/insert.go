@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"strings"
 
-	"xorm.io/builder"
-	"xorm.io/xorm/internal/utils"
-	"xorm.io/xorm/schemas"
+	"github.com/hanzoai/builder"
+	"github.com/hanzoai/xorm/internal/utils"
+	"github.com/hanzoai/xorm/schemas"
 )
 
 func (statement *Statement) writeInsertOutput(buf *strings.Builder, table *schemas.Table) error {

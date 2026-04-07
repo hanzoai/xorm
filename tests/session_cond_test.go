@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"xorm.io/builder"
+	"github.com/hanzoai/builder"
 )
 
 func TestBuilder(t *testing.T) {

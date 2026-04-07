@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"time"
 
-	"xorm.io/xorm/internal/json"
+	"github.com/hanzoai/xorm/internal/json"
 )
 
 // ConversionFrom is an inteface to allow retrieve data from database
