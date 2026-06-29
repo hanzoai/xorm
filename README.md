@@ -1,3 +1,5 @@
+<p align="center"><img src=".github/hero.svg" alt="xorm" width="880"></p>
+
 # xorm
 
 [中文](https://gitea.com/xorm/xorm/src/branch/v1/README_CN.md)
