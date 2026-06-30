@@ -6,6 +6,7 @@ require (
 	gitee.com/travelliu/dm v1.8.11192
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/goccy/go-json v0.10.5
+	github.com/hanzoai/builder v0.3.13
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.32
@@ -15,7 +16,6 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/ziutek/mymysql v1.5.4
 	modernc.org/sqlite v1.20.4
-	github.com/hanzoai/builder v0.3.13
 )
 
 require (
