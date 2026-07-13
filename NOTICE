@@ -1,0 +1,37 @@
+Hanzo xorm
+Copyright (c) 2026 Hanzo AI, Inc.
+
+This product includes software from xorm (the Go ORM), licensed under
+BSD-3-Clause:
+
+    Copyright (c) 2013 - 2015 The Xorm Authors
+
+Forked from xorm.io/xorm (upstream repository https://gitea.com/xorm/xorm,
+mirrored at https://github.com/go-xorm/xorm) at commit
+ab3ffa8fa5d56bfae4cae9b0b5186c4f66cd84d1 (upstream PR #2569, "Fix bug when
+invoking session in the after load"). No upstream release tag is present in
+this fork's history; the commit above is the last upstream commit before the
+Hanzo fork.
+
+DEVIATIONS
+
+The following changes distinguish this fork from upstream xorm:
+
+- Module path renamed from xorm.io/xorm to github.com/hanzoai/xorm; all
+  internal import paths updated accordingly.
+- SQL builder dependency switched from xorm.io/builder to
+  github.com/hanzoai/builder (v0.3.13).
+- CGo SQLite driver github.com/mattn/go-sqlite3 dropped in favor of the pure-Go
+  github.com/hanzoai/csqlite (v0.1.0) alongside modernc.org/sqlite (v1.48.0).
+- Go language directive bumped to go 1.26.4.
+- Database driver dependencies bumped: github.com/go-sql-driver/mysql v1.8.1,
+  github.com/jackc/pgx/v5 v5.6.0, github.com/microsoft/go-mssqldb v1.8.2,
+  github.com/goccy/go-json v0.10.5, github.com/shopspring/decimal v1.4.0.
+- Test dependency github.com/stretchr/testify bumped to v1.11.1.
+- Hanzo project documentation added (AGENTS.md, LLM.md with a CLAUDE.md
+  symlink, .changelog.yml).
+- Branding and CI/docs references migrated to Hanzo (git.hanzo.ai build
+  badges, .github/hero.svg banner).
+
+Dialect support (MySQL, Postgres, SQLite, MSSQL, Oracle, Dameng, GBase8s) is
+unchanged from upstream apart from the import-path rename above.
