@@ -1,13 +1,13 @@
 ## Contributing to xorm
 
-`xorm` has a backlog of [pull requests](https://gitea.com/xorm/xorm/pulls), but contributions are still very
-much welcome. You can help with patch review, submitting [bug reports](https://gitea.com/xorm/xorm/issues),
+`xorm` has a backlog of [pull requests](https://github.com/hanzoai/xorm/pulls), but contributions are still very
+much welcome. You can help with patch review, submitting [bug reports](https://github.com/hanzoai/xorm/issues),
 or adding new functionality. There is no formal style guide, but
 please conform to the style of existing code and general Go formatting
 conventions when submitting patches.
 
-* [fork the repo](https://gitea.com/repo/fork/2038)
-* [creating a pull request ](https://docs.gitea.io/en-us/pull-request/)
+* [fork the repo](https://github.com/hanzoai/xorm/fork)
+* [creating a pull request](https://docs.github.com/en/pull-requests)
 
 ### Language
 
@@ -15,7 +15,7 @@ Since `xorm` is a world-wide open source project, please describe your issues or
 
 ### Sign your codes with comments
 ```
-// !<your gitea.com id>! your comments
+// !<your github id>! your comments
 
 e.g.,
 
@@ -65,7 +65,7 @@ And if your branch is related with cache, you could also enable it via `TEST_CAC
 
 ### Patch review
 
-Help review existing open [pull requests](https://gitea.com/xorm/xorm/pulls) by commenting on the code or
+Help review existing open [pull requests](https://github.com/hanzoai/xorm/pulls) by commenting on the code or
 proposed functionality.
 
 ### Bug reports
@@ -73,10 +73,10 @@ proposed functionality.
 We appreciate any bug reports, but especially ones with self-contained
 (doesn't depend on code outside of xorm), minimal (can't be simplified
 further) test cases. It's especially helpful if you can submit a pull
-request with just the failing test case(you can find some example test file like [session_get_test.go](https://gitea.com/xorm/xorm/src/branch/master/session_get_test.go)).
+request with just the failing test case(you can find some example test file like [session_get_test.go](https://github.com/hanzoai/xorm/blob/main/session_get_test.go)).
 
 If you implements a new database interface, you maybe need to add a test_<databasename>.sh file.
-For example, [mysql_test.go](https://gitea.com/xorm/xorm/src/branch/master/test_mysql.sh)
+For example, [mysql_test.go](https://github.com/hanzoai/xorm/blob/main/test_mysql.sh)
 
 ### New functionality
 

@@ -18,6 +18,6 @@ jobs:
           go-version-file: 'go.mod'
       - name: Use Go Action  
         id: use-go-action
-        uses: https://gitea.com/actions/release-action@main
+        uses: https://git.hanzo.ai/hanzoai/release-action@main
         with:
           api_key: '${{secrets.RELEASE_TOKEN}}'

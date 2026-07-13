@@ -20,7 +20,7 @@ TEST_COCKROACH_USERNAME ?= postgres
 TEST_COCKROACH_PASSWORD ?=
 
 TEST_MSSQL_HOST ?= mssql:1433
-TEST_MSSQL_DBNAME ?= gitea
+TEST_MSSQL_DBNAME ?= xorm_test
 TEST_MSSQL_USERNAME ?= sa
 TEST_MSSQL_PASSWORD ?= MwantsaSecurePassword1
 TEST_MSSQL_DEFAULT_VARCHAR ?= varchar
@@ -89,7 +89,7 @@ fmt-check:
 go-check:
 	$(eval GO_VERSION := $(shell printf "%03d%03d%03d" $(shell go version | grep -Eo '[0-9]+\.?[0-9]+?\.?[0-9]?\s' | tr '.' ' ');))
 	@if [ "$(GO_VERSION)" -lt "001011000" ]; then \
-		echo "Gitea requires Go 1.11.0 or greater to build. You can get it at https://golang.org/dl/"; \
+		echo "xorm requires Go 1.11.0 or greater to build. You can get it at https://golang.org/dl/"; \
 		exit 1; \
 	fi
 
