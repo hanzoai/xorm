@@ -5,11 +5,166 @@
 package xorm
 
 import (
+	"math/big"
 	"strings"
 
 	"github.com/hanzoai/xorm/internal/utils"
 	"github.com/hanzoai/xorm/schemas"
 )
+
+var displayWidthNumericTypes = map[string]struct{}{
+	schemas.BigInt:    {},
+	schemas.Int:       {},
+	schemas.Integer:   {},
+	schemas.MediumInt: {},
+	schemas.SmallInt:  {},
+	schemas.TinyInt:   {},
+}
+
+func columnDefaultsMatch(col, oriCol *schemas.Column) bool {
+	switch {
+	case col.IsAutoIncrement:
+		return true
+	case col.DefaultIsEmpty && oriCol.DefaultIsEmpty:
+		return true
+	case col.DefaultIsEmpty:
+		return nullableNullDefault(col, oriCol)
+	case oriCol.DefaultIsEmpty:
+		return nullableNullDefault(oriCol, col)
+	}
+
+	return normalizeColumnDefaultValue(col.SQLType, col.Default) ==
+		normalizeColumnDefaultValue(col.SQLType, oriCol.Default)
+}
+
+func nullableNullDefault(emptyDefaultCol, explicitDefaultCol *schemas.Column) bool {
+	if !emptyDefaultCol.Nullable || !explicitDefaultCol.Nullable {
+		return false
+	}
+
+	return strings.EqualFold(strings.TrimSpace(explicitDefaultCol.Default), "NULL")
+}
+
+func normalizeColumnDefaultValue(sqlType schemas.SQLType, defaultValue string) string {
+	normalized := strings.TrimSpace(defaultValue)
+	if normalized == "" {
+		return normalized
+	}
+
+	if sqlType.IsBool() {
+		switch strings.ToLower(trimDefaultQuotes(normalized)) {
+		case "1", "true":
+			return "true"
+		case "0", "false":
+			return "false"
+		}
+	}
+
+	if sqlType.IsNumeric() {
+		if numeric, ok := normalizeNumericDefaultValue(normalized); ok {
+			return numeric
+		}
+	}
+
+	return normalized
+}
+
+func normalizeNumericDefaultValue(defaultValue string) (string, bool) {
+	normalized := trimDefaultQuotes(defaultValue)
+	rat, ok := new(big.Rat).SetString(normalized)
+	if !ok {
+		return "", false
+	}
+
+	return rat.RatString(), true
+}
+
+func trimDefaultQuotes(defaultValue string) string {
+	if len(defaultValue) < 2 {
+		return defaultValue
+	}
+
+	if (defaultValue[0] == '\'' && defaultValue[len(defaultValue)-1] == '\'') ||
+		(defaultValue[0] == '"' && defaultValue[len(defaultValue)-1] == '"') {
+		return defaultValue[1 : len(defaultValue)-1]
+	}
+
+	return defaultValue
+}
+
+func normalizeColumnTypeForComparison(alias func(string) string, columnType string) string {
+	normalized := strings.ToUpper(strings.TrimSpace(columnType))
+	if normalized == "" {
+		return normalized
+	}
+
+	unsignedSuffix := ""
+	if strings.HasSuffix(normalized, " UNSIGNED") {
+		unsignedSuffix = " UNSIGNED"
+		normalized = strings.TrimSpace(strings.TrimSuffix(normalized, unsignedSuffix))
+	}
+
+	baseType := strings.ToUpper(strings.TrimSpace(schemas.SQLTypeName(normalized)))
+	typeSuffix := strings.TrimPrefix(normalized, baseType)
+	if _, ok := displayWidthNumericTypes[baseType]; ok {
+		normalized = baseType
+	} else {
+		normalized = baseType + typeSuffix
+	}
+
+	if alias != nil {
+		aliasedBaseType := strings.ToUpper(alias(baseType))
+		if _, ok := displayWidthNumericTypes[baseType]; ok {
+			normalized = aliasedBaseType
+		} else {
+			normalized = aliasedBaseType + typeSuffix
+		}
+	}
+
+	if unsignedSuffix != "" && !strings.HasSuffix(normalized, unsignedSuffix) {
+		normalized += unsignedSuffix
+	}
+
+	return normalized
+}
+
+func columnUsesCompatibleJSONType(col *schemas.Column, currentType string) bool {
+	if col == nil {
+		return false
+	}
+
+	currentBaseType := strings.ToUpper(strings.TrimSpace(schemas.SQLTypeName(currentType)))
+	switch {
+	case col.IsJSONB:
+		return currentBaseType == schemas.Jsonb
+	case col.IsJSON:
+		return currentBaseType == schemas.Json
+	default:
+		return false
+	}
+}
+
+func columnTypesMatch(alias func(string) string, expectedCol, currentCol *schemas.Column, expectedType, currentType string) bool {
+	if alias == nil {
+		alias = func(columnType string) string {
+			return columnType
+		}
+	}
+
+	if expectedType == currentType {
+		return true
+	}
+
+	if columnUsesCompatibleJSONType(expectedCol, currentType) || columnUsesCompatibleJSONType(currentCol, expectedType) {
+		return true
+	}
+
+	if normalizeColumnTypeForComparison(alias, expectedType) == normalizeColumnTypeForComparison(alias, currentType) {
+		return true
+	}
+
+	return strings.EqualFold(schemas.SQLTypeName(currentType), alias(schemas.SQLTypeName(expectedType)))
+}
 
 type SyncOptions struct {
 	WarnIfDatabaseColumnMissed bool
@@ -158,7 +313,7 @@ func (session *Session) SyncWithOptions(opts SyncOptions, beans ...any) (*SyncRe
 			expectedType := engine.dialect.SQLType(col)
 			curType := engine.dialect.SQLType(oriCol)
 			switch {
-			case expectedType != curType:
+			case !columnTypesMatch(engine.dialect.Alias, col, oriCol, expectedType, curType):
 				switch {
 				case expectedType == schemas.Text && strings.HasPrefix(curType, schemas.Varchar):
 					// currently only support mysql & postgres
@@ -182,7 +337,7 @@ func (session *Session) SyncWithOptions(opts SyncOptions, beans ...any) (*SyncRe
 					}
 				default:
 					if !(strings.HasPrefix(curType, expectedType) && curType[len(expectedType)] == '(') {
-						if !strings.EqualFold(schemas.SQLTypeName(curType), engine.dialect.Alias(schemas.SQLTypeName(expectedType))) {
+						if !columnTypesMatch(engine.dialect.Alias, col, oriCol, expectedType, curType) {
 							engine.logger.Warnf("Table %s column %s db type is %s, struct type is %s",
 								tbNameWithSchema, col.Name, curType, expectedType)
 						}
@@ -205,16 +360,9 @@ func (session *Session) SyncWithOptions(opts SyncOptions, beans ...any) (*SyncRe
 				}
 			}
 
-			if col.Default != oriCol.Default {
-				switch {
-				case col.IsAutoIncrement: // For autoincrement column, don't check default
-				case (col.SQLType.Name == schemas.Bool || col.SQLType.Name == schemas.Boolean) &&
-					((strings.EqualFold(col.Default, "true") && oriCol.Default == "1") ||
-						(strings.EqualFold(col.Default, "false") && oriCol.Default == "0")):
-				default:
-					engine.logger.Warnf("Table %s Column %s db default is %s, struct default is %s",
-						tbName, col.Name, oriCol.Default, col.Default)
-				}
+			if !columnDefaultsMatch(col, oriCol) {
+				engine.logger.Warnf("Table %s Column %s db default is %s, struct default is %s",
+					tbName, col.Name, oriCol.Default, col.Default)
 			}
 			if col.Nullable != oriCol.Nullable {
 				engine.logger.Warnf("Table %s Column %s db nullable is %v, struct nullable is %v",

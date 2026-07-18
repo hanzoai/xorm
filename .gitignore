@@ -40,4 +40,3 @@ tests/test_sqlite*
 cover.out
 cover.html
 bin/
-.DS_Store

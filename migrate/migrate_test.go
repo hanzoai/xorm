@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	_ "github.com/hanzoai/csqlite"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"github.com/hanzoai/xorm"
 )
