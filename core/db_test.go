@@ -14,7 +14,7 @@ import (
 	"github.com/hanzoai/xorm/names"
 
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/hanzoai/csqlite"
+	_ "github.com/mattn/go-sqlite3"
 	_ "modernc.org/sqlite"
 )
 

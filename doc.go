@@ -9,7 +9,7 @@ Package xorm is a simple and powerful ORM for Go.
 
 Make sure you have installed Go 1.11+ and then:
 
-	go get xorm.io/xorm
+	go get github.com/hanzoai/xorm
 
 # Create Engine
 
@@ -205,7 +205,7 @@ Notice: the above 8 methods should be the last chainable method.
 
 # Builder
 
-xorm could work with xorm.io/builder directly.
+xorm could work with github.com/hanzoai/builder directly.
 
 1. With Where
 
