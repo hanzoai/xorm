@@ -1,10 +1,10 @@
 # xorm
 
-[English](README.md)
+[English](https://gitea.com/xorm/xorm/src/branch/v1/README.md)
 
 xorm 是一个简单而强大的Go语言ORM库. 通过它可以使数据库操作非常简便。
 
-[![Build Status](https://git.hanzo.ai/hanzoai/xorm/actions/workflows/release-tag/badge.svg)](https://git.hanzo.ai/hanzoai/xorm/actions) [![](http://gocover.io/_badge/xorm.io/xorm)](https://gocover.io/xorm.io/xorm) [![](https://goreportcard.com/badge/xorm.io/xorm)](https://goreportcard.com/report/xorm.io/xorm) [![Join the chat at https://img.shields.io/discord/323460943201959939.svg](https://img.shields.io/discord/323460943201959939.svg)](https://discord.gg/HuR2CF3)
+[![Build Status](https://drone.gitea.com/api/badges/xorm/xorm/status.svg)](https://drone.gitea.com/xorm/xorm) [![](http://gocover.io/_badge/xorm.io/xorm)](https://gocover.io/xorm.io/xorm) [![](https://goreportcard.com/badge/xorm.io/xorm)](https://goreportcard.com/report/xorm.io/xorm) [![Join the chat at https://img.shields.io/discord/323460943201959939.svg](https://img.shields.io/discord/323460943201959939.svg)](https://discord.gg/HuR2CF3)
 
 ## Notice
 
@@ -458,7 +458,7 @@ res, err := engine.Transaction(func(session *xorm.Session) (interface{}, error) 
 
 ## 贡献
 
-如果您也想为Xorm贡献您的力量，请查看 [CONTRIBUTING](CONTRIBUTING.md)。您也可以加入QQ群  技术帮助和讨论。
+如果您也想为Xorm贡献您的力量，请查看 [CONTRIBUTING](https://gitea.com/xorm/xorm/src/branch/master/CONTRIBUTING.md)。您也可以加入QQ群  技术帮助和讨论。
 群一：280360085 （已满）
 群二：795010183
 
