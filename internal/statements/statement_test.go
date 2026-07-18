@@ -19,7 +19,7 @@ import (
 	"github.com/hanzoai/xorm/schemas"
 	"github.com/hanzoai/xorm/tags"
 
-	_ "github.com/hanzoai/csqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (

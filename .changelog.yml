@@ -1,10 +1,11 @@
 # The full repository name
-repo: hanzoai/xorm
+repo: xorm/xorm
 
-# Service type (github or gitea)
-service: github
+# Service type (gitea or github)
+service: gitea
 
-# Base URL for the git service if self-hosting (optional)
+# Base URL for Gitea instance if using gitea service type (optional)
+# Default: https://gitea.com
 base-url:
 
 # Changelog groups and which labeled PRs to add to each group
