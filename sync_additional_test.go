@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/hanzoai/sqlite"
 
 	"github.com/hanzoai/xorm/log"
 	"github.com/hanzoai/xorm/schemas"
