@@ -46,8 +46,8 @@ github.com/hanzoai/csqlite v0.1.0 h1:suwC3dh0INlfP/U0Es6cDf6JNQ+2+GVLLATPWCUux6k
 github.com/hanzoai/csqlite v0.1.0/go.mod h1:H31a/O6VXuklR9UBkgY++bmAK5uzVfXPqU0F6P9Wsos=
 github.com/hanzoai/sqlcipher v0.1.0 h1:V9gKG3ZltN2ZCteDrOnXWfOeEe/YDhhUm9AorQEAuBo=
 github.com/hanzoai/sqlcipher v0.1.0/go.mod h1:F0soUYM1i4sawOZUpRvVnWoUayPbeGVlGq01VXy9Aqg=
-github.com/hanzoai/sqlite v0.3.1 h1:SdVMxhvT1gHOv7v5/XoNEPM6UiSh64gK95YPkb/u71M=
-github.com/hanzoai/sqlite v0.3.1/go.mod h1:a3llsefKbu2Iq/0rJ1mlWCaU2t2cXh+aze85x+oW72k=
+github.com/hanzoai/sqlite v0.3.2 h1:B/TRunlIDZECEypmr6rHeNyWf37YZXvPJHBDEFMKn/g=
+github.com/hanzoai/sqlite v0.3.2/go.mod h1:a3llsefKbu2Iq/0rJ1mlWCaU2t2cXh+aze85x+oW72k=
 github.com/hpcloud/tail v1.0.0 h1:nfCOvKYfkgYP8hkirhJocXT2+zOD8yUNjXaWfTlyFKI=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
