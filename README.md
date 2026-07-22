@@ -1,10 +1,12 @@
-# xorm
+<p align="center"><img src=".github/hero.svg" alt="xorm" width="880"></p>
 
-[中文](https://gitea.com/xorm/xorm/src/branch/v1/README_CN.md)
+# Hanzo xorm
 
-Xorm is a simple and powerful ORM for Go.
+[中文](README_CN.md)
 
-[![Build Status](https://gitea.com/xorm/xorm/actions/workflows/release-tag/badge.svg)](https://gitea.com/xorm/xorm/actions) [![](http://gocover.io/_badge/xorm.io/xorm)](https://gocover.io/xorm.io/xorm) [![](https://goreportcard.com/badge/xorm.io/xorm)](https://goreportcard.com/report/xorm.io/xorm) [![Join the chat at https://img.shields.io/discord/323460943201959939.svg](https://img.shields.io/discord/323460943201959939.svg)](https://discord.gg/HuR2CF3)
+Hanzo xorm is a simple and powerful ORM for Go — a fork of [xorm](https://gitea.com/xorm/xorm) by The Xorm Authors (BSD-3-Clause). See [NOTICE](NOTICE) for attribution and deviations.
+
+[![Build Status](https://git.hanzo.ai/hanzoai/xorm/actions/workflows/release-tag/badge.svg)](https://git.hanzo.ai/hanzoai/xorm/actions) [![](https://goreportcard.com/badge/github.com/hanzoai/xorm)](https://goreportcard.com/report/github.com/hanzoai/xorm) [![Join the chat at https://img.shields.io/discord/323460943201959939.svg](https://img.shields.io/discord/323460943201959939.svg)](https://discord.gg/HuR2CF3)
 
 ## Notice
 
