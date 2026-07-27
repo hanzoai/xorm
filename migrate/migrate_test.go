@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/stretchr/testify/assert"
+	_ "github.com/hanzoai/sqlite"
 	"github.com/hanzoai/xorm"
+	"github.com/stretchr/testify/assert"
 )
 
 type Person struct {
@@ -48,7 +48,7 @@ var migrations = []*Migration{
 func TestMigration(t *testing.T) {
 	_ = os.Remove(dbName)
 
-	db, err := xorm.NewEngine("sqlite3", dbName)
+	db, err := xorm.NewEngine("sqlite", dbName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,7 +88,7 @@ func TestMigration(t *testing.T) {
 func TestInitSchema(t *testing.T) {
 	os.Remove(dbName)
 
-	db, err := xorm.NewEngine("sqlite3", dbName)
+	db, err := xorm.NewEngine("sqlite", dbName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +117,7 @@ func TestInitSchema(t *testing.T) {
 func TestMissingID(t *testing.T) {
 	os.Remove(dbName)
 
-	db, err := xorm.NewEngine("sqlite3", dbName)
+	db, err := xorm.NewEngine("sqlite", dbName)
 	assert.NoError(t, err)
 	if db != nil {
 		defer db.Close()
