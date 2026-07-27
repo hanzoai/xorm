@@ -43,8 +43,7 @@ v1.0.0 相对于 v0.8.2 有以下不兼容的变更：
   - [github.com/jackc/pgx](https://github.com/jackc/pgx)
 
 * [SQLite](https://sqlite.org)
-  - [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)
-  - [modernc.org/sqlite](https://gitlab.com/cznic/sqlite)
+  - [github.com/hanzoai/sqlite](https://github.com/hanzoai/sqlite)
 
 * MsSql
   - [github.com/microsoft/go-mssqldb](https://github.com/microsoft/go-mssqldb)
