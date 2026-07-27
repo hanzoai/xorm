@@ -12,14 +12,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/hanzoai/xorm/caches"
 	"github.com/hanzoai/xorm/dialects"
 	"github.com/hanzoai/xorm/names"
 	"github.com/hanzoai/xorm/schemas"
 	"github.com/hanzoai/xorm/tags"
+	"github.com/stretchr/testify/assert"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/hanzoai/sqlite"
 )
 
 var (

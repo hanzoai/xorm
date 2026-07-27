@@ -14,12 +14,11 @@ import (
 	"github.com/hanzoai/xorm/names"
 
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/mattn/go-sqlite3"
-	_ "modernc.org/sqlite"
+	_ "github.com/hanzoai/sqlite"
 )
 
 var (
-	dbtype         = flag.String("dbtype", "sqlite3", "database type")
+	dbtype         = flag.String("dbtype", "sqlite", "database type")
 	dbConn         = flag.String("dbConn", "./db_test.db", "database connect string")
 	createTableSQL string
 )
