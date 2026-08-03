@@ -148,19 +148,46 @@ func (q Quoter) quoteWordTo(buf *strings.Builder, word string) error {
 		return err
 	}
 
+	// A closing delimiter inside the body would end the quote opened below and
+	// turn the rest of the word into executable SQL — Desc("x`,(subquery)--")
+	// otherwise emits `x`,(subquery)--`, two identifiers plus bare SQL. Force a
+	// quoted form for any word that carries a delimiter, even a dialect that
+	// would otherwise emit it bare, and double the delimiter (the standard SQL
+	// identifier escape) so the body cannot break out. A name that smuggled a
+	// delimiter becomes one identifier that does not exist: it fails closed.
+	carriesDelim := strings.IndexByte(realWord, q.Suffix) >= 0 ||
+		strings.IndexByte(realWord, q.Prefix) >= 0
+
 	isReserved := q.IsReserved(realWord)
-	if isReserved && realWord != "*" {
+	if (isReserved || carriesDelim) && realWord != "*" {
 		if err := buf.WriteByte(q.Prefix); err != nil {
 			return err
 		}
+		if err := writeEscapedIdent(buf, realWord, q.Suffix); err != nil {
+			return err
+		}
+		return buf.WriteByte(q.Suffix)
 	}
 	if _, err := buf.WriteString(realWord); err != nil {
 		return err
 	}
-	if isReserved && realWord != "*" {
-		return buf.WriteByte(q.Suffix)
-	}
 
+	return nil
+}
+
+// writeEscapedIdent writes the body of a quoted identifier, doubling every
+// occurrence of the closing delimiter so it cannot terminate the quote.
+func writeEscapedIdent(buf *strings.Builder, word string, suffix byte) error {
+	for i := 0; i < len(word); i++ {
+		if word[i] == suffix {
+			if err := buf.WriteByte(suffix); err != nil {
+				return err
+			}
+		}
+		if err := buf.WriteByte(word[i]); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
