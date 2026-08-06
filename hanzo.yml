@@ -1,0 +1,15 @@
+# Go ORM library — ships from a tag, builds no image.
+#
+# Gate: the module compiles, and every package whose tests need no live database
+# actually runs them. The root and tests/ suites drive MySQL/Postgres/MSSQL/TiDB
+# and are what `make test-<driver>` exists for — they need a server, so they are
+# not a push gate. `go vet ./...` is red on this tree today (legacy reflect
+# shapes); wiring it in would ship a gate that is red for a reason nobody
+# introduced, so the compile is the assertion here.
+test:
+  - name: build-and-unit
+    run: |
+      set -euo pipefail
+      go build ./...
+      go test ./caches/... ./convert/... ./core/... ./dialects/... \
+              ./internal/... ./log/... ./names/... ./schemas/... ./tags/...
