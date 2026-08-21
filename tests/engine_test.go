@@ -17,13 +17,12 @@ import (
 
 	_ "gitee.com/travelliu/dm"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/hanzoai/sqlite" // registers BOTH "sqlite" and "sqlite3"; the caller picks
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
 	_ "github.com/microsoft/go-mssqldb"
 	"github.com/stretchr/testify/assert"
 	_ "github.com/ziutek/mymysql/godrv"
-	_ "modernc.org/sqlite"
 )
 
 func TestPing(t *testing.T) {
