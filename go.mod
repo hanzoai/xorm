@@ -1,6 +1,6 @@
 module github.com/hanzoai/xorm
 
-go 1.26.5
+go 1.26.8
 
 require (
 	gitee.com/travelliu/dm v1.8.11192
