@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/hanzoai/xorm"
 	"github.com/hanzoai/xorm/schemas"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStoreEngine(t *testing.T) {
@@ -132,7 +132,7 @@ func TestCreateMultiTables(t *testing.T) {
 	user := &UserinfoMultiTable{}
 	assert.NoError(t, session.Begin())
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		tableName := fmt.Sprintf("user_%v", i)
 
 		assert.NoError(t, session.DropTable(tableName))
@@ -461,7 +461,7 @@ func TestSync2_2(t *testing.T) {
 	assert.NoError(t, PrepareEngine())
 
 	tableNames := make(map[string]bool)
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		tableName := fmt.Sprintf("test_sync2_index_%d", i)
 		tableNames[tableName] = true
 		assert.NoError(t, testEngine.Table(tableName).Sync(new(TestSync2Index)))

@@ -688,9 +688,7 @@ func TestAnonymousStruct(t *testing.T) {
 	assertSync(t, new(PlainFoo))
 
 	_, err := testEngine.Insert(&PlainFoo{
-		PlainObject: PlainObject{
-			Desc: "test",
-		},
+		Desc:   "test",
 		Width:  10,
 		Height: 20,
 

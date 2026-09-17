@@ -96,7 +96,7 @@ func (session *Session) insertMultipleStruct(rowsSlicePtr any) (int64, error) {
 		autoInsertClosures []func(any)
 	)
 
-	for i := 0; i < size; i++ {
+	for i := range size {
 		v := sliceValue.Index(i)
 		var vv reflect.Value
 		switch v.Kind() {
@@ -203,7 +203,7 @@ func (session *Session) insertMultipleStruct(rowsSlicePtr any) (int64, error) {
 
 	session.cacheInsert(tableName)
 
-	for i := 0; i < size; i++ {
+	for i := range size {
 		elemValue := reflect.Indirect(sliceValue.Index(i)).Addr().Interface()
 		for _, closure := range autoInsertClosures {
 			closure(elemValue)
@@ -211,7 +211,7 @@ func (session *Session) insertMultipleStruct(rowsSlicePtr any) (int64, error) {
 	}
 
 	lenAfterClosures := len(session.afterClosures)
-	for i := 0; i < size; i++ {
+	for i := range size {
 		elemValue := reflect.Indirect(sliceValue.Index(i)).Addr().Interface()
 
 		// handle AfterInsertProcessor

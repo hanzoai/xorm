@@ -60,7 +60,7 @@ func TestBufferIterate(t *testing.T) {
 	assert.NoError(t, testEngine.Sync(new(UserBufferIterate)))
 
 	size := 20
-	for i := 0; i < size; i++ {
+	for range size {
 		cnt, err := testEngine.Insert(&UserBufferIterate{
 			IsMan: true,
 		})

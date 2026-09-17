@@ -71,9 +71,9 @@ func (session *Session) get(beans ...any) (bool, error) {
 
 	beanValue := reflect.ValueOf(beans[0])
 	switch {
-	case beanValue.Kind() != reflect.Ptr:
+	case beanValue.Kind() != reflect.Pointer:
 		return false, errors.New("needs a pointer to a value")
-	case beanValue.Elem().Kind() == reflect.Ptr:
+	case beanValue.Elem().Kind() == reflect.Pointer:
 		return false, errors.New("a pointer to a pointer is not allowed")
 	case beanValue.IsNil():
 		return false, ErrObjectIsNil

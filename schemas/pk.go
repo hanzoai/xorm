@@ -7,6 +7,7 @@ package schemas
 import (
 	"bytes"
 	"encoding/gob"
+	"slices"
 
 	"github.com/hanzoai/xorm/internal/utils"
 )
@@ -22,12 +23,7 @@ func NewPK(pks ...any) *PK {
 
 // IsZero return true if primay keys are zero
 func (p *PK) IsZero() bool {
-	for _, k := range *p {
-		if utils.IsZero(k) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(*p, utils.IsZero)
 }
 
 // ToString convert to SQL string

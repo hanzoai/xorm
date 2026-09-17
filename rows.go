@@ -30,9 +30,9 @@ func newRows(session *Session, bean any) (*Rows, error) {
 	var err error
 
 	beanValue := reflect.ValueOf(bean)
-	if beanValue.Kind() != reflect.Ptr {
+	if beanValue.Kind() != reflect.Pointer {
 		return nil, errors.New("needs a pointer to a value")
-	} else if beanValue.Elem().Kind() == reflect.Ptr {
+	} else if beanValue.Elem().Kind() == reflect.Pointer {
 		return nil, errors.New("a pointer to a pointer is not allowed")
 	}
 
@@ -105,7 +105,7 @@ func (rows *Rows) Scan(beans ...any) error {
 
 	bean := beans[0]
 	tp := reflect.TypeOf(bean)
-	if tp.Kind() == reflect.Ptr {
+	if tp.Kind() == reflect.Pointer {
 		tp = tp.Elem()
 	}
 	beanKind := tp.Kind()

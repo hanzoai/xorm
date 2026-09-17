@@ -24,7 +24,7 @@ var DefaultCacheSize = 200
 // MapToSlice map query and struct as sql and args
 func MapToSlice(query string, mp any) (string, []any, error) {
 	vv := reflect.ValueOf(mp)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Map {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Map {
 		return "", []any{}, ErrNoMapPointer
 	}
 
@@ -46,7 +46,7 @@ func MapToSlice(query string, mp any) (string, []any, error) {
 // StructToSlice converts a query and struct as sql and args
 func StructToSlice(query string, st any) (string, []any, error) {
 	vv := reflect.ValueOf(st)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Struct {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Struct {
 		return "", []any{}, ErrNoStructPointer
 	}
 

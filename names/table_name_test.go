@@ -132,7 +132,7 @@ func (t *MyTable) TableName() string {
 
 func TestMyTable(t *testing.T) {
 	var table MyTable
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		table.Idx = i
 		assert.EqualValues(t, fmt.Sprintf("mytable_%d", i), GetTableName(SameMapper{}, reflect.ValueOf(&table)))
 	}

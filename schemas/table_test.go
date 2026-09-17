@@ -31,7 +31,7 @@ func init() {
 
 	var name string
 
-	for i := 0; i < len(testsGetColumn); i++ {
+	for i := range testsGetColumn {
 		// as in Table.AddColumn func
 		name = strings.ToLower(testsGetColumn[i].name)
 

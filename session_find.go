@@ -105,7 +105,7 @@ func (session *Session) find(rowsSlicePtr any, condiBean ...any) error {
 	tp := tpStruct
 	if session.statement.RefTable == nil {
 		switch sliceElementType.Kind() {
-		case reflect.Ptr:
+		case reflect.Pointer:
 			if sliceElementType.Elem().Kind() == reflect.Struct {
 				pv := reflect.New(sliceElementType.Elem())
 				if err := session.statement.SetRefValue(pv); err != nil {
@@ -234,11 +234,11 @@ func ParseColumnsSchema(fieldNames []string, types []*sql.ColumnType, table *sch
 func (session *Session) noCacheFind(table *schemas.Table, containerValue reflect.Value, sqlStr string, args ...any) error {
 	elemType := containerValue.Type().Elem()
 	var isPointer bool
-	if elemType.Kind() == reflect.Ptr {
+	if elemType.Kind() == reflect.Pointer {
 		isPointer = true
 		elemType = elemType.Elem()
 	}
-	if elemType.Kind() == reflect.Ptr {
+	if elemType.Kind() == reflect.Pointer {
 		return errors.New("pointer to pointer is not supported")
 	}
 
@@ -431,7 +431,7 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr an
 			if ckb == t {
 				return true
 			}
-			return t.Kind() == reflect.Ptr && t.Elem() == ckb
+			return t.Kind() == reflect.Pointer && t.Elem() == ckb
 		}
 		if !isHit() {
 			ides = append(ides, id)
@@ -493,7 +493,7 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr an
 		vs := reflect.Indirect(reflect.ValueOf(beans))
 		for i := 0; i < vs.Len(); i++ {
 			rv := vs.Index(i)
-			if rv.Kind() != reflect.Ptr {
+			if rv.Kind() != reflect.Pointer {
 				rv = rv.Addr()
 			}
 			id, err := table.IDOfV(rv)
@@ -512,7 +512,7 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr an
 		}
 	}
 
-	for j := 0; j < len(temps); j++ {
+	for j := range temps {
 		bean := temps[j]
 		if bean == nil {
 			session.engine.logger.Warnf("[cache] cache no hit: %v, %v, %v", tableName, ids[j], temps)
@@ -520,7 +520,7 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr an
 			continue
 		}
 		if sliceValue.Kind() == reflect.Slice {
-			if t.Kind() == reflect.Ptr {
+			if t.Kind() == reflect.Pointer {
 				sliceValue.Set(reflect.Append(sliceValue, reflect.ValueOf(bean)))
 			} else {
 				sliceValue.Set(reflect.Append(sliceValue, reflect.Indirect(reflect.ValueOf(bean))))
@@ -542,7 +542,7 @@ func (session *Session) cacheFind(t reflect.Type, sqlStr string, rowsSlicePtr an
 				ikey = key
 			}
 
-			if t.Kind() == reflect.Ptr {
+			if t.Kind() == reflect.Pointer {
 				sliceValue.SetMapIndex(reflect.ValueOf(ikey), reflect.ValueOf(bean))
 			} else {
 				sliceValue.SetMapIndex(reflect.ValueOf(ikey), reflect.Indirect(reflect.ValueOf(bean)))

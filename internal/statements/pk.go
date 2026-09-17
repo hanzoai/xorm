@@ -13,11 +13,11 @@ import (
 )
 
 var (
-	ptrPkType  = reflect.TypeOf(&schemas.PK{})
-	pkType     = reflect.TypeOf(schemas.PK{})
-	stringType = reflect.TypeOf("")
-	intType    = reflect.TypeOf(int64(0))
-	uintType   = reflect.TypeOf(uint64(0))
+	ptrPkType  = reflect.TypeFor[*schemas.PK]()
+	pkType     = reflect.TypeFor[schemas.PK]()
+	stringType = reflect.TypeFor[string]()
+	intType    = reflect.TypeFor[int64]()
+	uintType   = reflect.TypeFor[uint64]()
 )
 
 // ErrIDConditionWithNoTable represents an error there is no reference table with an ID condition
@@ -59,7 +59,7 @@ func (statement *Statement) ID(id any) *Statement {
 			if idType.ConvertibleTo(pkType) {
 				statement.idParam = idValue.Convert(pkType).Interface().(schemas.PK)
 			}
-		case reflect.Ptr:
+		case reflect.Pointer:
 			if idType.ConvertibleTo(ptrPkType) {
 				statement.idParam = idValue.Convert(ptrPkType).Elem().Interface().(schemas.PK)
 			}

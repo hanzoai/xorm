@@ -185,9 +185,7 @@ func (mapper GonicMapper) Table2Obj(name string) string {
 	newstr := make([]rune, 0)
 
 	name = strings.ToLower(name)
-	parts := strings.Split(name, "_")
-
-	for _, p := range parts {
+	for p := range strings.SplitSeq(name, "_") {
 		_, isInitialism := mapper[strings.ToUpper(p)]
 		for i, r := range p {
 			if i == 0 || isInitialism {

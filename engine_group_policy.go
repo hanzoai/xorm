@@ -34,7 +34,7 @@ func RandomPolicy() GroupPolicyHandler {
 // WeightRandomPolicy implmentes randomly chose the slave of slaves
 func WeightRandomPolicy(weights []int) GroupPolicyHandler {
 	rands := make([]int, 0, len(weights))
-	for i := 0; i < len(weights); i++ {
+	for i := range weights {
 		for n := 0; n < weights[i]; n++ {
 			rands = append(rands, i)
 		}
@@ -72,7 +72,7 @@ func RoundRobinPolicy() GroupPolicyHandler {
 // WeightRoundRobinPolicy returns a group policy handler
 func WeightRoundRobinPolicy(weights []int) GroupPolicyHandler {
 	rands := make([]int, 0, len(weights))
-	for i := 0; i < len(weights); i++ {
+	for i := range weights {
 		for n := 0; n < weights[i]; n++ {
 			rands = append(rands, i)
 		}
@@ -103,7 +103,7 @@ func LeastConnPolicy() GroupPolicyHandler {
 		slaves := g.Slaves()
 		connections := 0
 		idx := 0
-		for i := 0; i < len(slaves); i++ {
+		for i := range slaves {
 			openConnections := slaves[i].DB().Stats().OpenConnections
 			if i == 0 {
 				connections = openConnections

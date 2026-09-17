@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"github.com/hanzoai/builder"
 	"github.com/hanzoai/xorm"
 	"github.com/hanzoai/xorm/internal/utils"
 	"github.com/hanzoai/xorm/names"
 	"github.com/hanzoai/xorm/schemas"
+	"github.com/shopspring/decimal"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -875,21 +875,13 @@ func TestFindExtends3(t *testing.T) {
 	assertSync(t, new(FindExtendsAA))
 
 	cnt, err := testEngine.Insert(&FindExtendsAA{
-		FindExtendsBB: FindExtendsBB{
-			FindExtendsCC: FindExtendsCC{
-				Name: "cc1",
-			},
-		},
+		Name: "cc1",
 	})
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, cnt)
 
 	cnt, err = testEngine.Insert(&FindExtendsAA{
-		FindExtendsBB: FindExtendsBB{
-			FindExtendsCC: FindExtendsCC{
-				Name: "cc2",
-			},
-		},
+		Name: "cc2",
 	})
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, cnt)
@@ -974,14 +966,14 @@ func TestFindCacheLimit(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, cnt)
 
-	for i := 0; i < 8; i++ {
+	for range 8 {
 		var beans []InviteCode
 		err = testEngine.Limit(1, 0).Find(&beans)
 		assert.NoError(t, err)
 		assert.EqualValues(t, 1, len(beans))
 	}
 
-	for i := 0; i < 8; i++ {
+	for range 8 {
 		var beans2 []*InviteCode
 		err = testEngine.Limit(1, 0).Find(&beans2)
 		assert.NoError(t, err)

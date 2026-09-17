@@ -51,7 +51,7 @@ func (db *DB) Prepare(query string) (*Stmt, error) {
 // ExecMapContext execute with map
 func (s *Stmt) ExecMapContext(ctx context.Context, mp any) (sql.Result, error) {
 	vv := reflect.ValueOf(mp)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Map {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Map {
 		return nil, errors.New("mp should be a map's pointer")
 	}
 
@@ -70,7 +70,7 @@ func (s *Stmt) ExecMap(mp any) (sql.Result, error) {
 // ExecStructContext executes with struct
 func (s *Stmt) ExecStructContext(ctx context.Context, st any) (sql.Result, error) {
 	vv := reflect.ValueOf(st)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Struct {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Struct {
 		return nil, errors.New("mp should be a map's pointer")
 	}
 
@@ -124,7 +124,7 @@ func (s *Stmt) Query(args ...any) (*Rows, error) {
 // QueryMapContext query with map
 func (s *Stmt) QueryMapContext(ctx context.Context, mp any) (*Rows, error) {
 	vv := reflect.ValueOf(mp)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Map {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Map {
 		return nil, errors.New("mp should be a map's pointer")
 	}
 
@@ -144,7 +144,7 @@ func (s *Stmt) QueryMap(mp any) (*Rows, error) {
 // QueryStructContext query with struct
 func (s *Stmt) QueryStructContext(ctx context.Context, st any) (*Rows, error) {
 	vv := reflect.ValueOf(st)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Struct {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Struct {
 		return nil, errors.New("mp should be a map's pointer")
 	}
 
@@ -175,7 +175,7 @@ func (s *Stmt) QueryRow(args ...any) *Row {
 // QueryRowMapContext query row with map
 func (s *Stmt) QueryRowMapContext(ctx context.Context, mp any) *Row {
 	vv := reflect.ValueOf(mp)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Map {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Map {
 		return &Row{nil, errors.New("mp should be a map's pointer")}
 	}
 
@@ -195,7 +195,7 @@ func (s *Stmt) QueryRowMap(mp any) *Row {
 // QueryRowStructContext query row with struct
 func (s *Stmt) QueryRowStructContext(ctx context.Context, st any) *Row {
 	vv := reflect.ValueOf(st)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Struct {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Struct {
 		return &Row{nil, errors.New("st should be a struct's pointer")}
 	}
 

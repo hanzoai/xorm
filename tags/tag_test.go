@@ -97,7 +97,7 @@ func TestSplitTag(t *testing.T) {
 			tags, err := splitTag(kase.tag)
 			assert.NoError(t, err)
 			assert.EqualValues(t, len(tags), len(kase.tags))
-			for i := 0; i < len(tags); i++ {
+			for i := range tags {
 				assert.Equal(t, kase.tags[i], tags[i])
 			}
 		})

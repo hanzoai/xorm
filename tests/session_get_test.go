@@ -414,9 +414,7 @@ func TestJSONString(t *testing.T) {
 	assertSync(t, new(JsonAnonymousStruct))
 
 	_, err = testEngine.Insert(&JsonAnonymousStruct{
-		JsonString: JsonString{
-			Content: "1",
-		},
+		Content: "1",
 	})
 	assert.NoError(t, err)
 

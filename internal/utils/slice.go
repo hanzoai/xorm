@@ -13,7 +13,7 @@ func SliceEq(left, right []string) bool {
 	}
 	sort.Strings(left)
 	sort.Strings(right)
-	for i := 0; i < len(left); i++ {
+	for i := range left {
 		if left[i] != right[i] {
 			return false
 		}

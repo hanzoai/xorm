@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -1074,12 +1075,7 @@ func (db *gbase8s) primaryKeys(queryer core.Queryer, ctx context.Context, tableN
 }
 
 func inSlice(target string, list []string) bool {
-	for _, item := range list {
-		if item == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, target)
 }
 
 // Replace all consecutive whitespace characters with a single space using regex

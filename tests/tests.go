@@ -211,7 +211,7 @@ func MainTest(m *testing.M) {
 	conns := strings.Split(connString, "::")
 
 	var res int
-	for i := 0; i < len(dbs); i++ {
+	for i := range dbs {
 		dbType = dbs[i]
 		connString = conns[i]
 		testEngine = nil

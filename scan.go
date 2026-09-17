@@ -131,7 +131,7 @@ func genScanResultsByBean(bean any) (any, bool, error) {
 
 func (engine *Engine) scanStringInterface(rows *core.Rows, fields []string, types []*sql.ColumnType) ([]any, error) {
 	scanResults := make([]any, len(types))
-	for i := 0; i < len(types); i++ {
+	for i := range types {
 		var s sql.NullString
 		scanResults[i] = &s
 	}
@@ -195,7 +195,7 @@ func (engine *Engine) scan(rows *core.Rows, _ []string, types []*sql.ColumnType,
 
 func (engine *Engine) scanInterfaces(rows *core.Rows, fields []string, types []*sql.ColumnType) ([]any, error) {
 	scanResultContainers := make([]any, len(types))
-	for i := 0; i < len(types); i++ {
+	for i := range types {
 		scanResult, err := engine.driver.GenScanResult(types[i].DatabaseTypeName())
 		if err != nil {
 			return nil, err
@@ -214,7 +214,7 @@ func (engine *Engine) scanInterfaces(rows *core.Rows, fields []string, types []*
 func (engine *Engine) row2mapInterface(rows *core.Rows, types []*sql.ColumnType, fields []string) (map[string]any, error) {
 	resultsMap := make(map[string]any, len(fields))
 	scanResultContainers := make([]any, len(fields))
-	for i := 0; i < len(fields); i++ {
+	for i := range fields {
 		scanResult, err := engine.driver.GenScanResult(types[i].DatabaseTypeName())
 		if err != nil {
 			return nil, err
@@ -278,7 +278,7 @@ func (engine *Engine) ScanInterfaceMaps(rows *core.Rows) (resultsSlice []map[str
 
 func (engine *Engine) row2mapStr(rows *core.Rows, types []*sql.ColumnType, fields []string) (map[string]string, error) {
 	scanResults := make([]any, len(fields))
-	for i := 0; i < len(fields); i++ {
+	for i := range fields {
 		var s sql.NullString
 		scanResults[i] = &s
 	}
@@ -393,7 +393,7 @@ func (engine *Engine) row2sliceStr(rows *core.Rows, types []*sql.ColumnType, fie
 	}
 
 	results := make([]string, 0, len(fields))
-	for i := 0; i < len(fields); i++ {
+	for i := range fields {
 		results = append(results, scanResults[i].(*sql.NullString).String)
 	}
 	return results, nil

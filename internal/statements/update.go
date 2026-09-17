@@ -154,7 +154,7 @@ func (statement *Statement) BuildUpdates(tableValue reflect.Value,
 			goto APPEND
 		}
 
-		if fieldType.Kind() == reflect.Ptr {
+		if fieldType.Kind() == reflect.Pointer {
 			if fieldValue.IsNil() {
 				if includeNil {
 					args = append(args, nil)

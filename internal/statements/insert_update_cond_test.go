@@ -6,6 +6,7 @@ package statements
 
 import (
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -190,10 +191,5 @@ func containsCol(cols []string, name string) bool {
 }
 
 func containsArg(args []any, target any) bool {
-	for _, arg := range args {
-		if arg == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(args, target)
 }

@@ -22,8 +22,7 @@ func col2NewCols(columns ...string) []string {
 	for _, col := range columns {
 		col = strings.ReplaceAll(col, "`", "")
 		col = strings.ReplaceAll(col, `"`, "")
-		ccols := strings.Split(col, ",")
-		for _, c := range ccols {
+		for c := range strings.SplitSeq(col, ",") {
 			newColumns = append(newColumns, strings.TrimSpace(c))
 		}
 	}

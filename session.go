@@ -447,7 +447,7 @@ func (session *Session) row2Slice(rows *core.Rows, fields []string, types []*sql
 	}
 
 	scanResults := make([]any, len(fields))
-	for i := 0; i < len(fields); i++ {
+	for i := range fields {
 		var cell any
 		scanResults[i] = &cell
 	}
@@ -492,7 +492,7 @@ func setJSON(fieldValue *reflect.Value, fieldType reflect.Type, scanResult any) 
 
 func asKind(vv reflect.Value, tp reflect.Type) (any, error) {
 	switch tp.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		return asKind(vv.Elem(), tp.Elem())
 	case reflect.Int64:
 		return vv.Int(), nil
@@ -561,7 +561,7 @@ func (session *Session) convertBeanField(col *schemas.Column, fieldValue *reflec
 			return nil
 		}
 
-		if fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil() {
+		if fieldValue.Kind() == reflect.Pointer && fieldValue.IsNil() {
 			fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
 			return fieldValue.Interface().(convert.Conversion).FromDB(data)
 		}
@@ -576,7 +576,7 @@ func (session *Session) convertBeanField(col *schemas.Column, fieldValue *reflec
 	}
 
 	switch fieldType.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		var e reflect.Value
 		if fieldValue.IsNil() {
 			e = reflect.New(fieldType.Elem()).Elem()

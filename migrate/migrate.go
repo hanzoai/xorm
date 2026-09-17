@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 
 	"github.com/hanzoai/xorm"
 	"github.com/hanzoai/xorm/schemas"
@@ -121,8 +122,7 @@ func (m *Migrate) RollbackLast() error {
 }
 
 func (m *Migrate) getLastRunnedMigration() (*Migration, error) {
-	for i := len(m.migrations) - 1; i >= 0; i-- {
-		migration := m.migrations[i]
+	for _, migration := range slices.Backward(m.migrations) {
 		run, err := m.migrationDidRun(migration)
 		if err != nil {
 			return nil, err
@@ -202,7 +202,7 @@ func (m *Migrate) createMigrationTableIfNotExists() error {
 	}, 255, 0, false)
 	idCol.IsPrimaryKey = true
 
-	table := schemas.NewTable(m.options.TableName, reflect.TypeOf(new(schemas.Table)))
+	table := schemas.NewTable(m.options.TableName, reflect.TypeFor[*schemas.Table]())
 	table.AddColumn(idCol)
 
 	sql, _, err := m.db.Dialect().CreateTableSQL(context.Background(), m.db.DB(), table, m.options.TableName)

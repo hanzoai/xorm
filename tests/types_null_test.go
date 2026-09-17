@@ -96,7 +96,7 @@ func TestNullStructInsert(t *testing.T) {
 	assert.EqualValues(t, 2, item.Id)
 
 	items := []NullStruct{}
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		item := NullStruct{
 			Name:         sql.NullString{String: "haolei_" + strconv.Itoa(i+1), Valid: true},
 			Age:          sql.NullInt64{Int64: 30 + int64(i), Valid: true},

@@ -376,7 +376,7 @@ func (statement *Statement) GenDelIndexSQL() []string {
 
 func (statement *Statement) asDBCond(fieldValue reflect.Value, fieldType reflect.Type, col *schemas.Column, allUseBool, requiredField bool) (any, bool, error) {
 	switch fieldType.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if fieldValue.IsNil() {
 			return nil, true, nil
 		}
@@ -580,7 +580,7 @@ func (statement *Statement) buildConds2(table *schemas.Table, bean any,
 		}
 
 		fieldType := reflect.TypeOf(fieldValue.Interface())
-		if fieldType.Kind() == reflect.Ptr {
+		if fieldType.Kind() == reflect.Pointer {
 			if fieldValue.IsNil() {
 				if includeNil {
 					conds = append(conds, builder.Eq{colName: nil})
@@ -667,7 +667,7 @@ func (statement *Statement) formatTimeArg(arg any) (any, bool) {
 	if !rv.IsValid() {
 		return nil, false
 	}
-	if rv.Kind() == reflect.Ptr {
+	if rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
 			if rv.Type().Elem().ConvertibleTo(schemas.TimeType) {
 				return nil, true

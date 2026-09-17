@@ -86,7 +86,7 @@ func (col *Column) ValueOf(bean any) (*reflect.Value, error) {
 func (col *Column) ValueOfV(dataStruct *reflect.Value) (*reflect.Value, error) {
 	v := *dataStruct
 	for _, i := range col.FieldIndex {
-		if v.Kind() == reflect.Ptr {
+		if v.Kind() == reflect.Pointer {
 			if v.IsNil() {
 				v.Set(reflect.New(v.Type().Elem()))
 			}

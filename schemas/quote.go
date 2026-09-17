@@ -75,7 +75,7 @@ func (q Quoter) JoinWrite(b *strings.Builder, a []string, sep string) error {
 	}
 
 	n := len(sep) * (len(a) - 1)
-	for i := 0; i < len(a); i++ {
+	for i := range a {
 		n += len(a[i])
 	}
 

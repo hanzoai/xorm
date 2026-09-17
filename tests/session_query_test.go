@@ -400,7 +400,7 @@ func TestQueryBLOBInMySQL(t *testing.T) {
 
 	const N = 10
 	data := []Avatar{}
-	for i := 0; i < N; i++ {
+	for i := range N {
 		// allocate a []byte that is as twice big as the last one
 		// so that the underlying buffer will need to reallocate when querying
 		bs := repeatBytes(1<<(i+2), 'A'+byte(i))

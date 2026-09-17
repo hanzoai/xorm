@@ -340,7 +340,7 @@ func AssignValue(dv reflect.Value, src any) error {
 	}
 
 	switch dv.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if dv.IsNil() {
 			dv.Set(reflect.New(dv.Type().Elem()))
 		}
@@ -387,7 +387,7 @@ func AssignValue(dv reflect.Value, src any) error {
 		if data == nil {
 			return nil
 		}
-		if dv.Kind() != reflect.Ptr {
+		if dv.Kind() != reflect.Pointer {
 			dv = dv.Addr()
 		}
 		return json.DefaultJSONHandler.Unmarshal(data, dv.Interface())

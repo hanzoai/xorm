@@ -245,36 +245,36 @@ var (
 
 // enumerates all types
 var (
-	IntType   = reflect.TypeOf((*int)(nil)).Elem()
-	Int8Type  = reflect.TypeOf((*int8)(nil)).Elem()
-	Int16Type = reflect.TypeOf((*int16)(nil)).Elem()
-	Int32Type = reflect.TypeOf((*int32)(nil)).Elem()
-	Int64Type = reflect.TypeOf((*int64)(nil)).Elem()
+	IntType   = reflect.TypeFor[int]()
+	Int8Type  = reflect.TypeFor[int8]()
+	Int16Type = reflect.TypeFor[int16]()
+	Int32Type = reflect.TypeFor[int32]()
+	Int64Type = reflect.TypeFor[int64]()
 
-	UintType   = reflect.TypeOf((*uint)(nil)).Elem()
-	Uint8Type  = reflect.TypeOf((*uint8)(nil)).Elem()
-	Uint16Type = reflect.TypeOf((*uint16)(nil)).Elem()
-	Uint32Type = reflect.TypeOf((*uint32)(nil)).Elem()
-	Uint64Type = reflect.TypeOf((*uint64)(nil)).Elem()
+	UintType   = reflect.TypeFor[uint]()
+	Uint8Type  = reflect.TypeFor[uint8]()
+	Uint16Type = reflect.TypeFor[uint16]()
+	Uint32Type = reflect.TypeFor[uint32]()
+	Uint64Type = reflect.TypeFor[uint64]()
 
-	Float32Type = reflect.TypeOf((*float32)(nil)).Elem()
-	Float64Type = reflect.TypeOf((*float64)(nil)).Elem()
+	Float32Type = reflect.TypeFor[float32]()
+	Float64Type = reflect.TypeFor[float64]()
 
-	Complex64Type  = reflect.TypeOf((*complex64)(nil)).Elem()
-	Complex128Type = reflect.TypeOf((*complex128)(nil)).Elem()
+	Complex64Type  = reflect.TypeFor[complex64]()
+	Complex128Type = reflect.TypeFor[complex128]()
 
-	StringType = reflect.TypeOf((*string)(nil)).Elem()
-	BoolType   = reflect.TypeOf((*bool)(nil)).Elem()
-	ByteType   = reflect.TypeOf((*byte)(nil)).Elem()
+	StringType = reflect.TypeFor[string]()
+	BoolType   = reflect.TypeFor[bool]()
+	ByteType   = reflect.TypeFor[byte]()
 	BytesType  = reflect.SliceOf(ByteType)
 
-	TimeType        = reflect.TypeOf((*time.Time)(nil)).Elem()
-	BigFloatType    = reflect.TypeOf((*big.Float)(nil)).Elem()
-	NullFloat64Type = reflect.TypeOf((*sql.NullFloat64)(nil)).Elem()
-	NullStringType  = reflect.TypeOf((*sql.NullString)(nil)).Elem()
-	NullInt32Type   = reflect.TypeOf((*sql.NullInt32)(nil)).Elem()
-	NullInt64Type   = reflect.TypeOf((*sql.NullInt64)(nil)).Elem()
-	NullBoolType    = reflect.TypeOf((*sql.NullBool)(nil)).Elem()
+	TimeType        = reflect.TypeFor[time.Time]()
+	BigFloatType    = reflect.TypeFor[big.Float]()
+	NullFloat64Type = reflect.TypeFor[sql.NullFloat64]()
+	NullStringType  = reflect.TypeFor[sql.NullString]()
+	NullInt32Type   = reflect.TypeFor[sql.NullInt32]()
+	NullInt64Type   = reflect.TypeFor[sql.NullInt64]()
+	NullBoolType    = reflect.TypeFor[sql.NullBool]()
 )
 
 // Type2SQLType generate SQLType acorrding Go's type
@@ -322,7 +322,7 @@ func Type2SQLType(t reflect.Type) (st SQLType) {
 			// TODO need to handle association struct
 			st = SQLType{Text, 0, 0}
 		}
-	case reflect.Ptr:
+	case reflect.Pointer:
 		st = Type2SQLType(t.Elem())
 	default:
 		st = SQLType{Text, 0, 0}

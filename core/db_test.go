@@ -70,7 +70,7 @@ func BenchmarkOriQuery(b *testing.B) {
 		b.Error(err)
 	}
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		_, err = db.Exec("insert into user (`name`, title, age, alias, nick_name, created) values (?,?,?,?,?, ?)",
 			"xlw", "tester", 1.2, "lunny", "lunny xiao", time.Now())
 		if err != nil {
@@ -125,7 +125,7 @@ func BenchmarkStructQuery(b *testing.B) {
 		b.Error(err)
 	}
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		_, err = db.Exec("insert into user (`name`, title, age, alias, nick_name, created) values (?,?,?,?,?, ?)",
 			"xlw", "tester", 1.2, "lunny", "lunny xiao", time.Now())
 		if err != nil {
@@ -170,7 +170,7 @@ func BenchmarkStruct2Query(b *testing.B) {
 		b.Error(err)
 	}
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		_, err = db.Exec("insert into user (`name`, title, age, alias, nick_name, created) values (?,?,?,?,?,?)",
 			"xlw", "tester", 1.2, "lunny", "lunny xiao", time.Now())
 		if err != nil {
@@ -216,7 +216,7 @@ func BenchmarkSliceInterfaceQuery(b *testing.B) {
 		b.Error(err)
 	}
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		_, err = db.Exec("insert into user (`name`, title, age, alias, nick_name,created) values (?,?,?,?,?,?)",
 			"xlw", "tester", 1.2, "lunny", "lunny xiao", time.Now())
 		if err != nil {
@@ -325,7 +325,7 @@ func BenchmarkSliceStringQuery(b *testing.B) {
 		b.Error(err)
 	}
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		_, err = db.Exec("insert into user (name, title, age, alias, nick_name, created) values (?,?,?,?,?,?)",
 			"xlw", "tester", 1.2, "lunny", "lunny xiao", time.Now())
 		if err != nil {
@@ -376,7 +376,7 @@ func BenchmarkMapInterfaceQuery(b *testing.B) {
 		b.Error(err)
 	}
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		_, err = db.Exec("insert into user (name, title, age, alias, nick_name,created) values (?,?,?,?,?,?)",
 			"xlw", "tester", 1.2, "lunny", "lunny xiao", time.Now())
 		if err != nil {

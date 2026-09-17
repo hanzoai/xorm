@@ -19,8 +19,8 @@ type TableComment interface {
 }
 
 var (
-	tpTableName    = reflect.TypeOf((*TableName)(nil)).Elem()
-	tpTableComment = reflect.TypeOf((*TableComment)(nil)).Elem()
+	tpTableName    = reflect.TypeFor[TableName]()
+	tpTableComment = reflect.TypeFor[TableComment]()
 	tvCache        sync.Map
 	tcCache        sync.Map
 )
@@ -32,7 +32,7 @@ func GetTableName(mapper Mapper, v reflect.Value) string {
 	}
 
 	switch {
-	case v.Kind() == reflect.Ptr:
+	case v.Kind() == reflect.Pointer:
 		v = v.Elem()
 		if v.Type().Implements(tpTableName) {
 			return v.Interface().(TableName).TableName()
@@ -70,7 +70,7 @@ func GetTableComment(v reflect.Value) string {
 	}
 
 	switch {
-	case v.Kind() == reflect.Ptr:
+	case v.Kind() == reflect.Pointer:
 		v = v.Elem()
 		if v.Type().Implements(tpTableComment) {
 			return v.Interface().(TableComment).TableComment()

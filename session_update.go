@@ -39,7 +39,7 @@ func (session *Session) genAutoCond(condiBean any) (builder.Cond, error) {
 
 	ct := reflect.TypeOf(condiBean)
 	k := ct.Kind()
-	if k == reflect.Ptr {
+	if k == reflect.Pointer {
 		k = ct.Elem().Kind()
 	}
 	if k != reflect.Struct {

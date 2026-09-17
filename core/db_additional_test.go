@@ -105,8 +105,8 @@ func TestNeedLogSQL(t *testing.T) {
 
 func TestReflectNew(t *testing.T) {
 	db := &DB{reflectCache: make(map[reflect.Type]*cacheStruct)}
-	val := db.reflectNew(reflect.TypeOf(int(0)))
-	if val.Kind() != reflect.Ptr || val.Elem().Int() != 0 {
+	val := db.reflectNew(reflect.TypeFor[int]())
+	if val.Kind() != reflect.Pointer || val.Elem().Int() != 0 {
 		t.Fatalf("unexpected reflect value: %#v", val)
 	}
 }

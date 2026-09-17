@@ -45,7 +45,7 @@ func (rs *Rows) ScanStructByIndex(dest ...any) error {
 	vvvs := make([]reflect.Value, len(dest))
 	for i, s := range dest {
 		vv := reflect.ValueOf(s)
-		if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Struct {
+		if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Struct {
 			return errors.New("dest should be a struct's pointer")
 		}
 
@@ -60,8 +60,8 @@ func (rs *Rows) ScanStructByIndex(dest ...any) error {
 
 	i := 0
 	for _, vvv := range vvvs {
-		for j := 0; j < vvv.NumField(); j++ {
-			newDest[i] = vvv.Field(j).Addr().Interface()
+		for _, field := range vvv.Fields() {
+			newDest[i] = field.Addr().Interface()
 			i++
 		}
 	}
@@ -99,7 +99,7 @@ func fieldByName(v reflect.Value, name string) reflect.Value {
 // ScanStructByName scan data to a struct's pointer according field name
 func (rs *Rows) ScanStructByName(dest any) error {
 	vv := reflect.ValueOf(dest)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Struct {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Struct {
 		return errors.New("dest should be a struct's pointer")
 	}
 
@@ -125,7 +125,7 @@ func (rs *Rows) ScanStructByName(dest any) error {
 // ScanSlice scan data to a slice's pointer, slice's length should equal to columns' number
 func (rs *Rows) ScanSlice(dest any) error {
 	vv := reflect.ValueOf(dest)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Slice {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Slice {
 		return errors.New("dest should be a slice's pointer")
 	}
 
@@ -137,7 +137,7 @@ func (rs *Rows) ScanSlice(dest any) error {
 
 	newDest := make([]any, len(cols))
 
-	for j := 0; j < len(cols); j++ {
+	for j := range cols {
 		if j >= vvv.Len() {
 			newDest[j] = reflect.New(vvv.Type().Elem()).Interface()
 		} else {
@@ -160,7 +160,7 @@ func (rs *Rows) ScanSlice(dest any) error {
 // ScanMap scan data to a map's pointer
 func (rs *Rows) ScanMap(dest any) error {
 	vv := reflect.ValueOf(dest)
-	if vv.Kind() != reflect.Ptr || vv.Elem().Kind() != reflect.Map {
+	if vv.Kind() != reflect.Pointer || vv.Elem().Kind() != reflect.Map {
 		return errors.New("dest should be a map's pointer")
 	}
 

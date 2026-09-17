@@ -703,8 +703,7 @@ func (p *odbcDriver) Parse(driverName, dataSourceName string) (*URI, error) {
 		}
 		dbName = u.Query().Get("database")
 	} else {
-		kv := strings.Split(dataSourceName, ";")
-		for _, c := range kv {
+		for c := range strings.SplitSeq(dataSourceName, ";") {
 			vv := strings.Split(strings.TrimSpace(c), "=")
 			if len(vv) == 2 {
 				if strings.EqualFold(vv[0], "database") {

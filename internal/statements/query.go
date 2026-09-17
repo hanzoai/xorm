@@ -315,7 +315,7 @@ func (statement *Statement) GenExistSQL(bean ...any) (string, []any, error) {
 	if len(bean) > 0 {
 		b = bean[0]
 		beanValue := reflect.ValueOf(bean[0])
-		if beanValue.Kind() != reflect.Ptr {
+		if beanValue.Kind() != reflect.Pointer {
 			return "", nil, errors.New("needs a pointer")
 		}
 

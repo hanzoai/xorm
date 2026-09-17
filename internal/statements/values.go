@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	nullFloatType = reflect.TypeOf(sql.NullFloat64{})
-	bigFloatType  = reflect.TypeOf(big.Float{})
+	nullFloatType = reflect.TypeFor[sql.NullFloat64]()
+	bigFloatType  = reflect.TypeFor[big.Float]()
 )
 
 // Value2Interface convert a field value of a struct to interface for putting into database
@@ -44,7 +44,7 @@ func (statement *Statement) Value2Interface(col *schemas.Column, fieldValue refl
 		}
 	}
 
-	isNil := fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil()
+	isNil := fieldValue.Kind() == reflect.Pointer && fieldValue.IsNil()
 	if !isNil {
 		if fieldConvert, ok := fieldValue.Interface().(convert.Conversion); ok {
 			data, err := fieldConvert.ToDB()
@@ -66,7 +66,7 @@ func (statement *Statement) Value2Interface(col *schemas.Column, fieldValue refl
 
 	fieldType := fieldValue.Type()
 	k := fieldType.Kind()
-	if k == reflect.Ptr {
+	if k == reflect.Pointer {
 		if fieldValue.IsNil() {
 			return nil, nil
 		}

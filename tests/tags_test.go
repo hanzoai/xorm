@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/hanzoai/xorm/convert"
 	"github.com/hanzoai/xorm/internal/utils"
 	"github.com/hanzoai/xorm/names"
 	"github.com/hanzoai/xorm/schemas"
+	"github.com/stretchr/testify/assert"
 )
 
 type tempUser struct {
@@ -226,9 +226,7 @@ func TestExtends2(t *testing.T) {
 	assert.NoError(t, err)
 
 	msg := Message{
-		MessageBase: MessageBase{
-			Id: msgtype.Id,
-		},
+		Id:      msgtype.Id,
 		Title:   "test",
 		Content: "test",
 		Uid:     sender.Id,
@@ -287,9 +285,7 @@ func TestExtends3(t *testing.T) {
 	assert.NoError(t, err)
 
 	msg := Message{
-		MessageBase: MessageBase{
-			Id: msgtype.Id,
-		},
+		Id:      msgtype.Id,
 		Title:   "test",
 		Content: "test",
 		Uid:     sender.Id,
@@ -351,9 +347,7 @@ func TestExtends4(t *testing.T) {
 	assert.NoError(t, err)
 
 	msg := Message{
-		MessageBase: MessageBase{
-			Id: msgtype.Id,
-		},
+		Id:      msgtype.Id,
 		Title:   "test",
 		Content: "test",
 		Uid:     sender.Id,

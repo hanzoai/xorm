@@ -65,7 +65,7 @@ func IsZero(k any) bool {
 	return IsValueZero(reflect.ValueOf(k))
 }
 
-var zeroType = reflect.TypeOf((*Zeroable)(nil)).Elem()
+var zeroType = reflect.TypeFor[Zeroable]()
 
 // IsValueZero returns true if the reflect Value is a zero
 func IsValueZero(v reflect.Value) bool {
@@ -78,7 +78,7 @@ func IsValueZero(v reflect.Value) bool {
 		return v.Uint() == 0
 	case reflect.String:
 		return v.Len() == 0
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if v.IsNil() {
 			return true
 		}
@@ -106,10 +106,9 @@ func IsStructZero(v reflect.Value) bool {
 		}
 	}
 
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
+	for _, field := range v.Fields() {
 		switch field.Kind() {
-		case reflect.Ptr:
+		case reflect.Pointer:
 			field = field.Elem()
 			if field.Kind() == reflect.Struct {
 				if !IsStructZero(field) {

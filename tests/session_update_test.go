@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/hanzoai/xorm"
 	"github.com/hanzoai/xorm/internal/statements"
 	"github.com/hanzoai/xorm/internal/utils"
 	"github.com/hanzoai/xorm/names"
 	"github.com/hanzoai/xorm/schemas"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUpdateMap(t *testing.T) {
@@ -230,8 +230,7 @@ func TestForUpdate(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	// lock is used
-	wg.Add(1)
-	go func() {
+	wg.Go(func() {
 		f2 := new(ForUpdate)
 		session2.Where("`id` = ?", 1).ForUpdate()
 		has, err := session2.Get(f2) // wait release lock
@@ -243,15 +242,13 @@ func TestForUpdate(t *testing.T) {
 		case f2.Name != "updated by session1":
 			t.Errorf("read lock failed")
 		}
-		wg.Done()
-	}()
+	})
 
 	// lock is NOT used
 	wg.Add(1)
 
 	wg2 := &sync.WaitGroup{}
-	wg2.Add(1)
-	go func() {
+	wg2.Go(func() {
 		f3 := new(ForUpdate)
 		session3.Where("`id` = ?", 1)
 		has, err := session3.Get(f3) // wait release lock
@@ -264,8 +261,7 @@ func TestForUpdate(t *testing.T) {
 			t.Errorf("read lock failed")
 		}
 		wg.Done()
-		wg2.Done()
-	}()
+	})
 
 	wg2.Wait()
 

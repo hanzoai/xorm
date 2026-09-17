@@ -28,13 +28,13 @@ type TableIndices interface {
 	TableIndices() []*schemas.Index
 }
 
-var tpTableIndices = reflect.TypeOf((*TableIndices)(nil)).Elem()
+var tpTableIndices = reflect.TypeFor[TableIndices]()
 
 type TableCollations interface {
 	TableCollations() []*schemas.Collation
 }
 
-var tpTableCollations = reflect.TypeOf((*TableCollations)(nil)).Elem()
+var tpTableCollations = reflect.TypeFor[TableCollations]()
 
 // Parser represents a parser for xorm tag
 type Parser struct {
@@ -139,7 +139,7 @@ func addIndex(indexName string, table *schemas.Table, col *schemas.Column, index
 var ErrIgnoreField = errors.New("field will be ignored")
 
 func (parser *Parser) getSQLTypeByType(t reflect.Type) (schemas.SQLType, error) {
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 	if t.Kind() == reflect.Struct {
@@ -322,7 +322,7 @@ func isNotTitle(n string) bool {
 // Parse parses a struct as a table information
 func (parser *Parser) Parse(v reflect.Value) (*schemas.Table, error) {
 	t := v.Type()
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 		v = v.Elem()
 	}
@@ -392,7 +392,7 @@ func tableIndices(v reflect.Value) []*schemas.Index {
 		return v.Interface().(TableIndices).TableIndices()
 	}
 
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 		if v.Type().Implements(tpTableIndices) {
 			return v.Interface().(TableIndices).TableIndices()
@@ -411,7 +411,7 @@ func tableCollations(v reflect.Value) []*schemas.Collation {
 		return v.Interface().(TableCollations).TableCollations()
 	}
 
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 		if v.Type().Implements(tpTableCollations) {
 			return v.Interface().(TableCollations).TableCollations()

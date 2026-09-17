@@ -1278,7 +1278,7 @@ func getIndexColName(indexdef string) []string {
 	var colNames []string
 
 	cs := strings.Split(indexdef, "(")
-	for _, v := range strings.Split(strings.Split(cs[1], ")")[0], ",") {
+	for v := range strings.SplitSeq(strings.Split(cs[1], ")")[0], ",") {
 		colNames = append(colNames, strings.Split(strings.TrimLeft(v, " "), " ")[0])
 	}
 

@@ -745,8 +745,7 @@ func (p *mysqlDriver) Parse(driverName, dataSourceName string) (*URI, error) {
 			uri.DBName = match
 		case "params":
 			if len(match) > 0 {
-				kvs := strings.Split(match, "&")
-				for _, kv := range kvs {
+				for kv := range strings.SplitSeq(match, "&") {
 					splits := strings.Split(kv, "=")
 					if len(splits) == 2 {
 						if splits[0] == "charset" {

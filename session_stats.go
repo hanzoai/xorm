@@ -38,7 +38,7 @@ func (session *Session) sum(res, bean any, columnNames ...string) error {
 	}
 
 	v := reflect.ValueOf(res)
-	if v.Kind() != reflect.Ptr {
+	if v.Kind() != reflect.Pointer {
 		return errors.New("need a pointer to a variable")
 	}
 

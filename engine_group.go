@@ -53,7 +53,7 @@ func NewEngineGroup(args1, args2 any, policies ...GroupPolicy) (*EngineGroup, er
 	slaves, ok4 := args2.([]*Engine)
 	if ok3 && ok4 {
 		master.engineGroup = &eg
-		for i := 0; i < len(slaves); i++ {
+		for i := range slaves {
 			slaves[i].engineGroup = &eg
 		}
 		eg.Engine = master

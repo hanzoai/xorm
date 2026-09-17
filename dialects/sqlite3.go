@@ -417,8 +417,7 @@ func (db *sqlite3) GetColumns(queryer core.Queryer, ctx context.Context, tableNa
 		if strings.HasPrefix(strings.TrimSpace(colStr), "PRIMARY KEY") {
 			parts := strings.Split(strings.TrimSpace(colStr), "(")
 			if len(parts) == 2 {
-				pkCols := strings.Split(strings.TrimRight(strings.TrimSpace(parts[1]), ")"), ",")
-				for _, pk := range pkCols {
+				for pk := range strings.SplitSeq(strings.TrimRight(strings.TrimSpace(parts[1]), ")"), ",") {
 					if col, ok := cols[strings.Trim(strings.TrimSpace(pk), "`")]; ok {
 						col.IsPrimaryKey = true
 					}
