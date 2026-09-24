@@ -41,3 +41,8 @@ cover.out
 cover.html
 bin/
 .DS_Store
+
+# Local symlinks to LLM.md
+CLAUDE.md
+AGENTS.md
+GEMINI.md
